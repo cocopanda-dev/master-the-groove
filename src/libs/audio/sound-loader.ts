@@ -1,14 +1,13 @@
 // src/libs/audio/sound-loader.ts
-import { Audio } from 'expo-av';
+import { createAudioPlayer, setAudioModeAsync } from 'expo-audio';
+import type { AudioPlayer } from 'expo-audio';
 import type { SoundId } from '@types';
 import { clampVolume } from './volume-utils';
 
 const POOL_SIZE = 4;
 
-type SoundInstance = InstanceType<typeof Audio.Sound>;
-
 type SoundPool = {
-  instances: SoundInstance[];
+  instances: AudioPlayer[];
   nextIndex: number;
 };
 
@@ -27,20 +26,20 @@ const SOUND_FILES: Partial<Record<SoundId, number>> = {
 const MVP_SOUNDS: SoundId[] = ['click', 'clave', 'woodblock'];
 
 export const preloadSounds = async (): Promise<void> => {
-  await Audio.setAudioModeAsync({
-    playsInSilentModeIOS: true,
-    staysActiveInBackground: false,
-    shouldDuckAndroid: true,
+  await setAudioModeAsync({
+    playsInSilentMode: true,
+    shouldPlayInBackground: false,
+    shouldRouteThroughEarpiece: false,
   });
 
   for (const name of MVP_SOUNDS) {
     const source = SOUND_FILES[name];
     if (!source) continue;
 
-    const instances: SoundInstance[] = [];
+    const instances: AudioPlayer[] = [];
     for (let i = 0; i < POOL_SIZE; i++) {
-      const { sound } = await Audio.Sound.createAsync(source, { shouldPlay: false });
-      instances.push(sound);
+      const player = createAudioPlayer(source);
+      instances.push(player);
     }
     soundPools[name] = { instances, nextIndex: 0 };
   }
@@ -49,7 +48,7 @@ export const preloadSounds = async (): Promise<void> => {
 export const playSound = async (
   name: SoundId,
   volume: number,
-  pan: number,
+  _pan: number,
 ): Promise<void> => {
   const pool = soundPools[name];
   if (!pool) return;
@@ -59,12 +58,11 @@ export const playSound = async (
 
   pool.nextIndex = (pool.nextIndex + 1) % POOL_SIZE;
 
-  await instance.setStatusAsync({
-    shouldPlay: true,
-    positionMillis: 0,
-    volume: clampVolume(volume),
-    audioPan: Math.max(-1, Math.min(1, pan)),
-  });
+  instance.volume = clampVolume(volume);
+  // Note: expo-audio AudioPlayer does not support pan natively.
+  // Stereo split panning requires a lower-level audio API (future enhancement).
+  instance.seekTo(0);
+  instance.play();
 };
 
 export const unloadSounds = async (): Promise<void> => {
@@ -72,7 +70,7 @@ export const unloadSounds = async (): Promise<void> => {
     const pool = soundPools[name];
     if (!pool) continue;
     for (const instance of pool.instances) {
-      await instance.unloadAsync();
+      instance.release();
     }
     delete soundPools[name];
   }

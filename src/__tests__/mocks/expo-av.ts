@@ -1,26 +1,24 @@
-// src/__tests__/mocks/expo-av.ts
-const mockSound = {
-  playAsync: jest.fn().mockResolvedValue(undefined),
-  stopAsync: jest.fn().mockResolvedValue(undefined),
-  pauseAsync: jest.fn().mockResolvedValue(undefined),
-  setPositionAsync: jest.fn().mockResolvedValue(undefined),
-  setVolumeAsync: jest.fn().mockResolvedValue(undefined),
-  setStatusAsync: jest.fn().mockResolvedValue(undefined),
-  unloadAsync: jest.fn().mockResolvedValue(undefined),
-  replayAsync: jest.fn().mockResolvedValue(undefined),
-  getStatusAsync: jest.fn().mockResolvedValue({ isLoaded: true, isPlaying: false }),
+// src/__tests__/mocks/expo-audio.ts
+// (File kept as expo-av.ts for jest-setup compatibility — mocks expo-audio)
+const mockPlayer = {
+  play: jest.fn(),
+  pause: jest.fn(),
+  seekTo: jest.fn(),
+  release: jest.fn(),
+  volume: 1,
+  muted: false,
+  playing: false,
+  isLoaded: true,
+  loop: false,
+  currentTime: 0,
+  duration: 0,
 };
 
-jest.mock('expo-av', () => ({
-  Audio: {
-    Sound: {
-      createAsync: jest.fn().mockResolvedValue({
-        sound: { ...mockSound },
-        status: { isLoaded: true },
-      }),
-    },
-    setAudioModeAsync: jest.fn().mockResolvedValue(undefined),
-  },
+const createMockPlayer = () => ({ ...mockPlayer });
+
+jest.mock('expo-audio', () => ({
+  createAudioPlayer: jest.fn(() => createMockPlayer()),
+  setAudioModeAsync: jest.fn().mockResolvedValue(undefined),
 }));
 
-export { mockSound };
+export { mockPlayer };

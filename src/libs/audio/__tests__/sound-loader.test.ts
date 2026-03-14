@@ -1,5 +1,5 @@
 // src/libs/audio/__tests__/sound-loader.test.ts
-import { Audio } from 'expo-av';
+import { createAudioPlayer, setAudioModeAsync } from 'expo-audio';
 import { preloadSounds, playSound, unloadSounds, isSoundLoaded } from '../sound-loader';
 
 describe('SoundLoader', () => {
@@ -8,18 +8,18 @@ describe('SoundLoader', () => {
   });
 
   describe('preloadSounds', () => {
-    it('calls Audio.Sound.createAsync for each MVP sound', async () => {
+    it('calls createAudioPlayer for each MVP sound', async () => {
       await preloadSounds();
       // 3 MVP sounds x 4 pool size = 12 calls
-      expect(Audio.Sound.createAsync).toHaveBeenCalledTimes(12);
+      expect(createAudioPlayer).toHaveBeenCalledTimes(12);
     });
 
-    it('sets audio mode for background playback', async () => {
+    it('sets audio mode for silent playback', async () => {
       await preloadSounds();
-      expect(Audio.setAudioModeAsync).toHaveBeenCalledWith(
+      expect(setAudioModeAsync).toHaveBeenCalledWith(
         expect.objectContaining({
-          playsInSilentModeIOS: true,
-          staysActiveInBackground: false,
+          playsInSilentMode: true,
+          shouldPlayInBackground: false,
         }),
       );
     });
@@ -39,7 +39,7 @@ describe('SoundLoader', () => {
   });
 
   describe('unloadSounds', () => {
-    it('unloads all sound instances', async () => {
+    it('releases all sound instances', async () => {
       await preloadSounds();
       await unloadSounds();
       expect(isSoundLoaded('click')).toBe(false);
