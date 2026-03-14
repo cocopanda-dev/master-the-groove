@@ -1,5 +1,5 @@
 // src/features/feel-lessons/components/ShapeStep.tsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, ScrollView } from 'react-native';
 import { Text } from '@design-system';
 import { colors, spacing } from '@design-system/tokens';
@@ -7,6 +7,7 @@ import { useAudioStore } from '@data-access/stores/use-audio-store';
 import { useShallow } from 'zustand/shallow';
 import { RadialVisualizer } from '@features/core-player';
 import type { LessonStep } from '@types';
+import { MVP_RATIOS } from '@types';
 
 interface ShapeStepProps {
   readonly step: LessonStep;
@@ -23,6 +24,12 @@ export const ShapeStep = ({ step }: ShapeStepProps) => {
     })),
   );
   const audio = step.audioConfig;
+
+  const ratio = useMemo(() => {
+    if (!audio) return null;
+    return MVP_RATIOS.find((r) => r.ratioA === audio.ratioA && r.ratioB === audio.ratioB)
+      ?? { id: `${audio.ratioA}-${audio.ratioB}`, ratioA: audio.ratioA, ratioB: audio.ratioB, name: `${audio.ratioA}:${audio.ratioB}`, displayName: '', culturalOrigin: '', mnemonic: '' };
+  }, [audio]);
 
   useEffect(() => {
     if (audio) {
@@ -47,19 +54,8 @@ export const ShapeStep = ({ step }: ShapeStepProps) => {
       <Text variant="body" color={colors.textPrimary}>
         {step.instruction}
       </Text>
-      {audio ? (
-        <RadialVisualizer
-          ratio={{
-            id: `${audio.ratioA}-${audio.ratioB}`,
-            ratioA: audio.ratioA,
-            ratioB: audio.ratioB,
-            name: `${audio.ratioA}:${audio.ratioB}`,
-            displayName: '',
-            culturalOrigin: '',
-            mnemonic: '',
-          }}
-          isPlaying={true}
-        />
+      {ratio ? (
+        <RadialVisualizer ratio={ratio} isPlaying={true} />
       ) : null}
       {step.secondaryText ? (
         <Text variant="bodySmall" color={colors.textSecondary}>

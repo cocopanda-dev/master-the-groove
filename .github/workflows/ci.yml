@@ -11,8 +11,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  typecheck:
-    name: TypeScript
+  install:
+    name: Install
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,11 +20,35 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - name: Cache node_modules
+        id: cache-nm
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: nm-${{ hashFiles('package-lock.json') }}
       - run: npm ci
+        if: steps.cache-nm.outputs.cache-hit != 'true'
+
+  typecheck:
+    name: TypeScript
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Restore node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: nm-${{ hashFiles('package-lock.json') }}
       - run: npm run typecheck
 
   lint:
     name: ESLint
+    needs: install
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,11 +56,16 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+      - name: Restore node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: nm-${{ hashFiles('package-lock.json') }}
       - run: npm run lint
 
   test:
     name: Tests
+    needs: install
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -44,7 +73,11 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+      - name: Restore node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: nm-${{ hashFiles('package-lock.json') }}
       - run: npm run test:coverage
       - name: Upload coverage
         if: always()

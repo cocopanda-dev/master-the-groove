@@ -1,13 +1,12 @@
 // src/features/feel-lessons/components/DisappearingStep.tsx
 import React, { useCallback, useMemo } from 'react';
-import { DisappearingBeatInline } from '@features/disappearing-beat';
+import { DisappearingBeatInline, DEFAULT_CONFIG } from '@features/disappearing-beat';
 import type { StageConfig, DisappearingBeatResult } from '@features/disappearing-beat';
 import type { LessonStep } from '@types';
 
 interface DisappearingStepProps {
   readonly step: LessonStep;
   readonly onComplete?: () => void;
-  readonly isCompleted: boolean;
 }
 
 /**
@@ -27,7 +26,7 @@ export const DisappearingStep = ({ step, onComplete }: DisappearingStepProps) =>
       bpm: step.audioConfig?.bpm ?? 72,
       targetLayer: (ic?.targetLayer === 'B' ? 'B' : 'A') as 'A' | 'B',
       barsPerStage: ic?.barsPerStage ?? 4,
-      returnCycles: 2,
+      returnCycles: DEFAULT_CONFIG.returnCycles,
     };
   }, [step.audioConfig, step.interactionConfig]);
 

@@ -117,7 +117,6 @@ export const LessonScreen = ({ polyrhythmId }: LessonScreenProps) => {
           <DisappearingStep
             step={currentStep}
             onComplete={engine.markStepDone}
-            isCompleted={isStepCompleted}
           />
         );
       default:
