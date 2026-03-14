@@ -5,3 +5,4 @@ export { spacing } from './spacing';
 export type { SpacingToken } from './spacing';
 export { borderRadius } from './border-radius';
 export { shadows } from './shadows';
+export { beatPulse, duration } from './animations';
