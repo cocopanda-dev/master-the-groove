@@ -12,11 +12,29 @@ const BPM_MAX = 240;
 
 type BpmControlProps = {
   bpm: number;
+  ratioA: number;
+  ratioB: number;
   onBpmChange: (bpm: number) => void;
   onTapTempo: () => void;
 };
 
-export const BpmControl = ({ bpm, onBpmChange, onTapTempo }: BpmControlProps) => {
+const computeLayerBpm = (bpm: number, layerBeats: number, ratioA: number, ratioB: number): number => {
+  const cycleLength = (ratioA * ratioB) / gcd(ratioA, ratioB); // lcm
+  return Math.round((bpm * layerBeats) / cycleLength);
+};
+
+const gcd = (a: number, b: number): number => {
+  let x = Math.abs(a);
+  let y = Math.abs(b);
+  while (y !== 0) {
+    const temp = y;
+    y = x % y;
+    x = temp;
+  }
+  return x;
+};
+
+export const BpmControl = ({ bpm, ratioA, ratioB, onBpmChange, onTapTempo }: BpmControlProps) => {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editValue, setEditValue] = useState('');
 
@@ -54,6 +72,22 @@ export const BpmControl = ({ bpm, onBpmChange, onTapTempo }: BpmControlProps) =>
         <Text style={styles.bpmValue}>{bpm}</Text>
         <Text style={styles.bpmUnit}>BPM</Text>
       </Pressable>
+
+      {/* Per-layer effective BPM */}
+      <View style={styles.layerBpmRow} testID="layer-bpm-display">
+        <View style={styles.layerBpmItem}>
+          <View style={[styles.layerDot, { backgroundColor: colors.layerA }]} />
+          <Text style={styles.layerBpmText}>
+            {computeLayerBpm(bpm, ratioA, ratioA, ratioB)} BPM
+          </Text>
+        </View>
+        <View style={styles.layerBpmItem}>
+          <View style={[styles.layerDot, { backgroundColor: colors.layerB }]} />
+          <Text style={styles.layerBpmText}>
+            {computeLayerBpm(bpm, ratioB, ratioA, ratioB)} BPM
+          </Text>
+        </View>
+      </View>
 
       {/* Slider */}
       <Slider
@@ -139,6 +173,27 @@ const styles = StyleSheet.create({
   },
   bpmUnit: {
     fontSize: fontSize.xl,
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+  layerBpmRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: spacing.xl,
+    marginTop: -spacing.sm,
+  },
+  layerBpmItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  layerDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  layerBpmText: {
+    fontSize: fontSize.sm,
     color: colors.textSecondary,
     fontWeight: '500',
   },

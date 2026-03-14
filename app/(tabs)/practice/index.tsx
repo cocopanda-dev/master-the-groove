@@ -87,6 +87,8 @@ const PracticeScreen = () => {
         <View style={styles.sectionCard}>
           <BpmControl
             bpm={audio.bpm}
+            ratioA={selectedRatio.ratioA}
+            ratioB={selectedRatio.ratioB}
             onBpmChange={audio.setBpm}
             onTapTempo={audio.tapTempo}
           />
