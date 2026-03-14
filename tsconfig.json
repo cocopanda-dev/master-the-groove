@@ -19,7 +19,9 @@
       "@types/*": ["src/types/*"],
       "@entry-providers": ["src/entry-providers"],
       "@entry-providers/*": ["src/entry-providers/*"],
-      "@assets/*": ["src/assets/*"]
+      "@assets/*": ["src/assets/*"],
+      "@navigation": ["src/navigation"],
+      "@navigation/*": ["src/navigation/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"],
