@@ -2,7 +2,19 @@
 
 **Foundation:** Audio Engine
 **Spec:** [./spec.md](./spec.md)
-**Estimated Effort:** ~5-7 days
+**Estimated Effort:** ~10-14 days (includes mandatory latency spike, asset sourcing, and platform validation tasks. The audio engine is the highest-risk foundation and should not be rushed.)
+
+---
+
+## Task 0: Audio Latency Spike (Prerequisite)
+
+- [ ] Build minimal PoC: two expo-av Sound instances, 120 BPM, stereo split
+- [ ] Measure: schedule-to-audible latency on iOS device and Android device
+- [ ] Measure: per-beat jitter over 30 seconds of playback
+- [ ] Pass criteria: jitter < 10ms iOS, < 20ms Android
+- [ ] If fail: document findings, propose native module approach
+- [ ] Estimate: 2-4 hours
+- **This task BLOCKS all subsequent tasks**
 
 ---
 
@@ -21,7 +33,7 @@
   ├── constants.ts          # Sound file paths, default values, limits
   └── hooks.ts              # React hooks wrapping store selectors
   ```
-- [ ] Define all TypeScript types in `types.ts`: `ScheduleEvent`, `SoundName`, `BeatCallback`, `CycleCallback`, `StageCallback`, `AudioState`, `AudioActions`, `FadeState`, `MicInputHook`, `AccelerometerHook`, `OnsetDetectionCallback`, `OnsetRecord`.
+- [ ] Define all TypeScript types in `types.ts`: `ScheduleEvent`, `SoundId`, `BeatCallback`, `CycleCallback`, `AudioState`, `AudioActions`, `FadeState`, `MicInputHook`, `AccelerometerHook`, `OnsetDetectionCallback`, `OnsetRecord`.
 - [ ] Define all constants in `constants.ts`: `BPM_MIN`, `BPM_MAX`, `BPM_DEFAULT`, `VOLUME_DEFAULT`, `SOUND_POOL_SIZE`, `TAP_BUFFER_SIZE`, `TAP_TIMEOUT_MS`, `SOUND_FILE_MAP`.
 - [ ] Set up `index.ts` barrel export that exposes only the public API (store, hooks, types, constants).
 
@@ -116,15 +128,15 @@
   - Clamp to valid range and call `setBpm`.
   - Return the computed BPM.
 - [ ] Implement smooth tempo transition:
-  - When `setBpm` is called during active playback, do not apply instantly.
-  - Interpolate from current BPM to new BPM over 1 beat duration (at the old BPM).
-  - Recalculate remaining schedule events with the interpolated BPM.
-  - If another `setBpm` arrives during interpolation, restart from current intermediate value.
+  - When `setBpm` is called during active playback, store target BPM but do not apply mid-cycle.
+  - At the next cycle boundary, apply the new BPM for all subsequent cycles.
+  - No interpolation within a cycle — tempo changes are quantized to cycle boundaries.
+  - The UI slider shows the target BPM immediately, audio catches up at next cycle.
 
 **Acceptance Criteria:**
 - Tapping 4 times at 500ms intervals (120 BPM) results in `tapTempo()` returning approximately 120.
 - A tap arriving 3 seconds after the last tap resets the buffer, and the next `tapTempo()` call returns `undefined`/null until 2+ taps are recorded.
-- Changing BPM from 120 to 60 during playback does not cause a jarring tempo jump — the transition is smooth over ~500ms (1 beat at 120 BPM).
+- Changing BPM from 120 to 60 during playback applies the change at the next cycle boundary (not mid-cycle).
 
 ---
 
@@ -132,12 +144,13 @@
 
 - [ ] Implement `play()`:
   - Generate schedule via `generatePolyrhythmSchedule`.
-  - Record cycle start time using high-resolution timer (`performance.now()` if available, else `Date.now()`).
-  - Start the scheduling loop using `setTimeout` for each upcoming event.
+  - Record cycle start time using high-resolution timer (`performance.now()`).
+  - Start the lookahead scheduling loop (~25ms interval via `setTimeout`/`setInterval`).
+  - Each tick: schedule all events within the next ~100ms window against the audio clock.
   - Anchor timing to wall clock on each cycle start to prevent drift.
   - Set `isPlaying = true`, `isPaused = false`.
 - [ ] Implement `pause()`:
-  - Clear all pending `setTimeout` handles.
+  - Clear the lookahead scheduling interval and all pending scheduled events.
   - Record elapsed position within the cycle.
   - Set `isPlaying = false`, `isPaused = true`.
 - [ ] Implement resume (calling `play()` when `isPaused` is true):
@@ -185,14 +198,14 @@
 
 ## Task 9: Add Beat Callback System
 
-- [ ] Implement a callback registry (array of callbacks) for `onBeat`, `onCycleComplete`, and `onStageTransition`.
+- [ ] Implement a callback registry (array of callbacks) for `onBeat` and `onCycleComplete`.
 - [ ] Each registration function returns an unsubscribe function that removes the callback from the registry.
 - [ ] In the transport loop, when an event fires:
   - Update `currentBeatA` or `currentBeatB` in the store.
   - Call all registered `onBeat` callbacks with `(layer, beatIndex, timestamp)`.
 - [ ] At cycle completion, call all registered `onCycleComplete` callbacks with `(cycleCount)`.
-- [ ] `onStageTransition` callbacks are called explicitly by the feature layer (Disappearing Beat) via an exported `triggerStageTransition(stage)` function.
 - [ ] Guard against callback errors: wrap each callback invocation in try-catch so one failing callback does not break the scheduling loop.
+- [ ] Note: Stage transitions are owned by the feature layer (Disappearing Beat), not the audio engine. The engine provides `fadeLayer()` and `muteAll()`/`unmuteAll()` primitives only.
 
 **Acceptance Criteria:**
 - A component registering `onBeat` receives exactly `ratioA + ratioB` callbacks per cycle (e.g., 5 for 3:2).
@@ -224,6 +237,37 @@
 - The no-op implementations can be instantiated and called without errors.
 - Calling `registerMicInput(customHook)` replaces the default, and subsequent audio engine references to the mic hook use the custom implementation.
 - Extension points do not affect the audio engine's behavior when using default no-op implementations.
+
+---
+
+## Task 10A: Source/Create Audio Assets
+
+- [ ] Create or source royalty-free WAV files for all SoundId values
+- [ ] MVP sounds: click, clave, woodblock
+- [ ] Baby sounds: soft-chime, soft-bell
+- [ ] Validate: 44.1kHz, 16-bit, mono, < 200ms, clean attack
+- [ ] Place in `assets/sounds/`
+- [ ] Estimate: 2-4 hours
+
+---
+
+## Task 10B: Audio Session Configuration
+
+- [ ] Configure iOS AVAudioSession category (.playback)
+- [ ] Configure Android audio focus handling
+- [ ] Handle Bluetooth connect/disconnect
+- [ ] Handle audio interruptions (phone calls, Siri)
+- [ ] Test: audio pauses on call, resumes on user action
+- [ ] Estimate: 1 day
+
+---
+
+## Task 10C: Stereo Split Platform Validation
+
+- [ ] Test expo-av pan control on iOS device
+- [ ] Test expo-av pan control on Android device
+- [ ] Document results and fallback approach if pan unavailable
+- [ ] Estimate: 2-4 hours
 
 ---
 
@@ -286,3 +330,18 @@
 - Timing assertions use a 5ms tolerance to account for setTimeout resolution.
 - Tests are self-contained — no real audio hardware required.
 - Tests clean up after themselves (stop playback, unsubscribe callbacks, unload sounds).
+
+---
+
+## Task Dependencies
+
+- Task 0 (spike) → blocks ALL other tasks
+- Task 1 (types) → no dependencies
+- Task 2 (scheduler) → depends on Task 1
+- Task 3 (sound loader) → depends on Task 1, Task 10A (audio assets)
+- Task 7 (transport) → depends on Tasks 2, 3, 4, 5, 6
+- Task 8 (store) → depends on Task 7
+- Task 10A (audio assets) → no dependencies (can run in parallel with Task 1)
+- Task 10B (audio session) → depends on Task 3
+- Task 10C (stereo validation) → depends on Task 4
+- Integration tests → depend on all above

@@ -87,7 +87,7 @@ CREATE TABLE baby_profiles (
   baby_name       TEXT NOT NULL,
   birth_date      DATE NOT NULL,
   current_stage   INTEGER NOT NULL DEFAULT 0 CHECK (current_stage BETWEEN 0 AND 5),
-  stage_override  BOOLEAN NOT NULL DEFAULT false,
+  stage_override  INTEGER DEFAULT NULL CHECK (stage_override IS NULL OR stage_override BETWEEN 0 AND 5),  -- null = use auto-computed stage
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -114,7 +114,7 @@ CREATE TABLE baby_sessions (
   baby_profile_id   UUID NOT NULL REFERENCES baby_profiles(id) ON DELETE CASCADE,
   activity_type     TEXT NOT NULL,
   duration          INTEGER NOT NULL DEFAULT 0,  -- seconds
-  baby_response     TEXT NOT NULL CHECK (baby_response IN ('calm', 'excited', 'disengaged')),
+  baby_response     TEXT CHECK (baby_response IN ('calm', 'excited', 'disengaged')),  -- nullable: null when parent dismisses prompt
   completed_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -147,8 +147,15 @@ CREATE TABLE lesson_progress (
   completed         BOOLEAN NOT NULL DEFAULT false,
   feel_badge_earned BOOLEAN NOT NULL DEFAULT false,
   last_attempt_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
-  created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
+  created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at        TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Auto-update updated_at on every UPDATE
+CREATE TRIGGER lesson_progress_updated_at
+  BEFORE UPDATE ON lesson_progress
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at();
 
 CREATE UNIQUE INDEX idx_lesson_progress_user_polyrhythm
   ON lesson_progress(user_id, polyrhythm_id);
@@ -156,6 +163,29 @@ CREATE UNIQUE INDEX idx_lesson_progress_user_polyrhythm
 ALTER TABLE lesson_progress ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY lesson_progress_self_access ON lesson_progress
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+```
+
+### settings
+
+```sql
+CREATE TABLE settings (
+  user_id       UUID PRIMARY KEY REFERENCES auth.users(id),
+  settings_json JSONB NOT NULL DEFAULT '{}',
+  updated_at    TIMESTAMPTZ DEFAULT now()
+);
+
+-- Auto-update updated_at on every UPDATE
+CREATE TRIGGER settings_updated_at
+  BEFORE UPDATE ON settings
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at();
+
+-- RLS: user can only read/write their own settings row
+ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY settings_self_access ON settings
   USING (user_id = auth.uid())
   WITH CHECK (user_id = auth.uid());
 ```
@@ -189,6 +219,8 @@ async function initAnonymousAuth(): Promise<string> {
 - User ID persisted in AsyncStorage and Zustand `userStore`
 - All Supabase queries use this ID for RLS
 - If the user reinstalls the app, they get a new anonymous ID (data loss for MVP — acceptable)
+
+**Data Loss Mitigation:** After the user accumulates 5+ sessions, show a non-blocking prompt suggesting account linking. Repeated every 20 sessions until linked. This is MVP scope — not post-MVP.
 
 ### Post-MVP: Email/Password Upgrade
 
@@ -241,24 +273,10 @@ interface ClaudeAPIRequest {
 
 ### AI Vocal Coach (P1)
 
+> See `data-models.md` for type definitions (`AICoachRequest`, `AICoachResponse`).
+
 ```typescript
 // @/services/ai-service.ts
-
-interface VocalCoachCallParams {
-  polyrhythmId: string;
-  bpm: number;
-  feelState: FeelState;
-  onsetTimestamps: number[];
-  expectedTimestamps: number[];
-  targetLayer: 'A' | 'B';
-}
-
-interface VocalCoachCallResult {
-  feedback: string;
-  focusArea: 'timing' | 'consistency' | 'feel' | 'breathing';
-  suggestedBpm: number | null;
-  suggestedExercise: string | null;
-}
 
 // System prompt for vocal coach
 const VOCAL_COACH_SYSTEM = `You are a rhythm coach for GrooveCore, a polyrhythm training app.
@@ -268,8 +286,8 @@ Be encouraging but specific. Focus on feel, not mechanical precision.
 Never mention technical audio terms — speak like a supportive drum teacher.`;
 
 async function getVocalCoachFeedback(
-  params: VocalCoachCallParams
-): Promise<VocalCoachCallResult> {
+  params: AICoachRequest
+): Promise<AICoachResponse> {
   // P1 — stub implementation
   throw new Error('AI Vocal Coach not yet implemented');
 }
@@ -340,25 +358,12 @@ async function getSongRecommendations(
 
 ### AI Mnemonic Generator (P2)
 
+> See `data-models.md` for type definitions (`MnemonicRequest`, `MnemonicResponse`).
+
 ```typescript
-interface MnemonicGeneratorCallParams {
-  polyrhythmId: string;
-  syllablePattern: number[];
-  themeCategory: 'animals' | 'food' | 'sports' | 'names' | 'custom';
-  customTheme: string | null;
-}
-
-interface MnemonicGeneratorCallResult {
-  mnemonics: Array<{
-    phrase: string;
-    syllableBreakdown: string;
-    theme: string;
-  }>;
-}
-
 async function generateMnemonics(
-  params: MnemonicGeneratorCallParams
-): Promise<MnemonicGeneratorCallResult> {
+  params: MnemonicRequest
+): Promise<MnemonicResponse> {
   // P2 — stub implementation
   throw new Error('AI Mnemonic Generator not yet implemented');
 }
@@ -479,19 +484,25 @@ const STORAGE_KEYS = {
 | BabyProfiles | Yes (primary) | Yes (backup) | Immediate |
 | BabySessions | Yes (primary) | Yes (backup) | Background |
 | LessonProgress | Yes (primary) | Yes (backup) | Background |
-| Settings | Yes (only) | No | N/A |
+| Settings | Yes (primary) | Yes (backup) | Background |
 | Sync queue | Yes (only) | No | N/A |
 | AI response cache | Yes (only) | No | N/A |
 
 ### Sync Queue Architecture
 
 ```typescript
+/**
+ * Canonical SyncQueueItem shape. All sync code must use these exact field names:
+ * - operation: 'upsert' | 'delete' (not 'insert'/'update')
+ * - payload (not 'data')
+ * - queuedAt (not 'createdAt')
+ */
 interface SyncQueueItem {
   /** UUID for this queue entry */
   id: string;
 
   /** Which table to sync to */
-  table: 'users' | 'sessions' | 'baby_profiles' | 'baby_sessions' | 'lesson_progress';
+  table: 'users' | 'sessions' | 'baby_profiles' | 'baby_sessions' | 'lesson_progress' | 'settings';
 
   /** The operation */
   operation: 'upsert' | 'delete';
@@ -584,10 +595,15 @@ async function flushSyncQueue(): Promise<void> {
       item.retryCount += 1;
 
       if (item.retryCount >= 5) {
-        // Drop after 5 failures — log for debugging
-        console.error(`Sync failed permanently for ${item.table}:${item.id}`);
+        // After 5 failures, move to dead-letter queue (persisted in AsyncStorage
+        // under `@groovecore/sync-dead-letter`). Items in the dead-letter queue
+        // can be retried manually or on next successful sync.
+        // Exponential backoff: 1s, 2s, 4s, 8s, 16s.
+        console.error(`Sync failed permanently for ${item.table}:${item.id} — moved to dead-letter queue`);
+        await moveToDeadLetterQueue(item);
         await removeFromQueue(item.id);
       } else {
+        // Exponential backoff: delay = 2^(retryCount-1) seconds (1s, 2s, 4s, 8s, 16s)
         await updateQueueItem(item);
       }
 

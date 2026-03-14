@@ -1,4 +1,6 @@
-# Epic 2: Audio Engine -- Implementation Plan
+# Epic 1: Audio Engine -- Implementation Plan
+
+> **Epic numbering updated 2026-03-13.** This was formerly Epic 2. Now Epic 1 per unified numbering scheme.
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -1931,3 +1933,18 @@ Chunk 4 (Advanced) -- needs Chunk 3
   v
 Chunk 5 (Store) -- needs all above
 ```
+
+> **Type Source:** All types MUST match `development/contracts/data-models.md`.
+> If types in this plan differ from data-models.md, data-models.md is authoritative.
+> Update this plan to match, not the other way around.
+
+---
+
+## Done Criteria
+- [ ] Audio latency spike passes (jitter < 10ms iOS, < 20ms Android)
+- [ ] Two layers play simultaneously with correct timing
+- [ ] Stereo split works on both iOS and Android devices
+- [ ] BPM changes take effect at next cycle boundary
+- [ ] All SoundId assets exist and load correctly
+- [ ] Transport controls (play/stop/pause) work reliably
+- [ ] Audio interruptions handled (phone calls, headphone disconnect)

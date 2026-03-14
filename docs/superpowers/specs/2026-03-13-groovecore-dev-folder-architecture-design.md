@@ -79,35 +79,37 @@ development/
 
 The master-todolist.md defines epics, dependencies, phase, and required reading per epic.
 
+> **Epic numbering updated 2026-03-13 per unified numbering scheme. Old Epic 1 (Project Scaffolding) absorbed into Epic 0.**
+
 ### Build Order & Dependencies
 
-**Phase 0: Foundations (sequential)**
-- Epic 1: Project Scaffolding — Deps: none
-- Epic 2: Audio Engine — Deps: Epic 1
-- Epic 3: Data Layer — Deps: Epic 1
-- Epic 4: Navigation Shell — Deps: Epic 1
+**Phase 0: Foundations**
+- Epic 0: Developer Infrastructure — Deps: none (absorbs old Epic 1: Project Scaffolding)
+- Epic 1: Audio Engine — Deps: Epic 0
+- Epic 2: Data Layer — Deps: Epic 0
+- Epic 3: Navigation Shell — Deps: Epic 0
 
 **Phase 1: MVP Features (parallelizable after foundations)**
-- Epic 5: Onboarding Flow — Deps: Epic 3, Epic 4
-- Epic 6: Core Player — Deps: Epic 2, Epic 4
-- Epic 7: Feel Lessons (3:2) — Deps: Epic 2, Epic 6
-- Epic 8: Disappearing Beat Mode — Deps: Epic 2, Epic 6
-- Epic 9: Baby Mode — Deps: Epic 3, Epic 4
-- Epic 10: Progress Tracking — Deps: Epic 3, Epic 4
+- Epic 4: Onboarding Flow — Deps: Epic 2, Epic 3
+- Epic 5: Core Player — Deps: Epic 1, Epic 3
+- Epic 6: Feel Lessons (3:2) — Deps: Epic 1, Epic 5
+- Epic 7: Disappearing Beat Mode — Deps: Epic 1, Epic 5
+- Epic 8: Baby Mode — Deps: Epic 1, Epic 2, Epic 3
+- Epic 9: Progress Tracking — Deps: Epic 2, Epic 3
 
 **Phase 2: Integration & Polish**
-- Epic 11: End-to-End Integration — Deps: Epics 5-10
-- Epic 12: Testing & QA — Deps: Epic 11
+- Epic 10: End-to-End Integration — Deps: Epics 4-9
+- Epic 11: Testing & QA — Deps: Epic 10
 
 ### Parallelization Map
 
 ```
-Epic 1 (scaffold)
-  ├── Epic 2 (audio) ──┬── Epic 6 (core player) ──┬── Epic 7 (lessons)
-  │                     │                           └── Epic 8 (disappearing beat)
-  ├── Epic 3 (data) ───┼── Epic 5 (onboarding)
-  │                     ├── Epic 9 (baby mode)
-  └── Epic 4 (nav) ────┴── Epic 10 (progress)
+Epic 0 (dev infra)
+  ├── Epic 1 (audio) ──┬── Epic 5 (core player) ──┬── Epic 6 (lessons)
+  │                     │                           └── Epic 7 (disappearing beat)
+  ├── Epic 2 (data) ───┼── Epic 4 (onboarding)
+  │                     ├── Epic 8 (baby mode)
+  └── Epic 3 (nav) ────┴── Epic 9 (progress)
 ```
 
 ## Contract Files

@@ -16,16 +16,23 @@ Priority: P0 (MVP)
   - Generate unique IDs for sessions (uuid or nanoid)
   - **AC:** Store initializes, persists, and restores correctly. All actions mutate state as expected. Selectors return correct filtered/computed data.
 
-- [ ] **Task 1.2: Define PracticeSession and FeelStateReport types**
-  - `PracticeSession`: id, type, polyrhythmId, duration, bpmMin, bpmMax, disappearingBeatStage (optional), feelState (optional), timestamp
-  - `FeelStateReport`: polyrhythmId, state, timestamp
+- [ ] **Task 1.2: Use canonical Session type from data-models.md**
+  - Uses canonical `Session` type from `data-models.md`. Do NOT define a separate `PracticeSession` type.
+  - Field mapping (canonical names, not alternatives):
+    - `mode` (not 'type')
+    - `bpmStart` / `bpmEnd` (not bpmMin/bpmMax)
+    - `disappearingBeatStageReached` (not disappearingBeatStage)
+    - `feelStateAfter` (not feelState)
+    - `startedAt` (not timestamp)
+  - `FeelStateReport`: polyrhythmId, state, timestamp (this is a supplementary type, not a session field)
   - Export from shared types file
-  - **AC:** Types compile and cover all fields from the spec.
+  - **AC:** Types use canonical field names. No duplicate type definitions.
 
 - [ ] **Task 1.3: Implement streak calculation**
   - `getCurrentStreak()`: count consecutive days (going backward from today) with at least one session
   - Today counts if it has sessions; if not, streak starts from yesterday
-  - Use ISO date comparison (ignore time, compare calendar days)
+  - Streak calculation uses device local timezone. Each session's `startedAt` is converted to a local calendar date for comparison.
+  - Document timezone edge case in code comments: timezone changes during travel may cause a missed day or double day. Accepted for MVP -- streaks are motivational, not contractual.
   - **AC:** Unit tests pass for: no sessions (streak 0), single day (streak 1), consecutive days, gap breaks streak, today-only, yesterday-and-today.
 
 ---
@@ -103,7 +110,7 @@ Priority: P0 (MVP)
 
 - [ ] **Task 4.2: Build session entry row component**
   - Reusable row component for a single session
-  - Props: `session: PracticeSession`
+  - Props: `session: Session` (canonical type from data-models.md)
   - Renders:
     - Polyrhythm ratio pill (e.g., "3:2" with layer A color)
     - Session type icon (player, book, fade icons for core-player, lesson, disappearing-beat)
@@ -170,6 +177,27 @@ Priority: P0 (MVP)
     3. "View All Sessions" link/button at the bottom (navigates to full SessionHistoryScreen)
   - ScrollView wrapping all content
   - **AC:** Progress tab renders with all three sections. Scrolling works. "View All Sessions" navigates correctly.
+
+---
+
+## 7. Error & Empty States
+
+- [ ] **Task 7.1: Error & Empty States**
+  - Implement empty state for no sessions ("Start your first practice to see your progress here" + "Go to Practice" CTA)
+  - Implement empty state for no feel reports ("Practice for 30+ seconds and we'll ask how it felt")
+  - Implement empty state for no streaks ("Practice on 2 consecutive days to start a streak")
+  - Implement returning user banner (14+ day gap): "Welcome back!" with last session date and re-entry suggestion
+  - Handle AsyncStorage read failure gracefully (show error state with retry)
+
+---
+
+## 8. Accessibility
+
+- [ ] **Task 8.1: Accessibility**
+  - Screen reader labels for all progress indicators
+  - Announce streak count changes
+  - Feel-state colors have text labels (not color-only)
+  - Chart/timeline has accessible description
 
 ---
 

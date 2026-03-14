@@ -13,14 +13,15 @@ The main polyrhythm player screen, accessible from the Practice tab. This is the
 - Active pill uses primary accent color with white text; inactive pills use muted background
 - Tapping a new ratio while playing: stops playback, reconfigures the scheduler, resets visualizer — user must press play again
 - Post-MVP ratios (2:3, 5:4, etc.) render as locked/grayed pills with "Coming Soon" label
+  - Non-selectable. Tap shows tooltip: "This ratio is coming in a future update."
 
 ### Center Section: Radial Visualizer
 - Circular beat indicator occupying the central ~60% of the screen
 - Full circle = one combined cycle (LCM of A and B beats)
 - **Layer A dots:** positioned evenly around the circle at their subdivision points, colored with `tokens.color.layerA` (e.g., coral/orange)
 - **Layer B dots:** positioned evenly around the circle at their subdivision points, colored with `tokens.color.layerB` (e.g., teal/blue)
-- **Beat 1 (shared downbeat):** accent color (`tokens.color.accent`), rendered as a larger dot (1.5x radius of regular dots), positioned at 12 o'clock
-- **Active beat animation:** when a beat fires, its dot scales up to 1.3x over 80ms then returns to 1.0x over 120ms (ease-out)
+- **Beat 1 (shared downbeat):** beat-one color (`tokens.color.beatOne`), rendered as a larger dot (1.5x radius of regular dots), positioned at 12 o'clock
+- **Active beat animation:** when a beat fires, its dot scales up to `beatPulseScale` (1.3x) over 80ms then returns to 1.0x over 70ms (ease-out). Total: 150ms (matching `beatPulseDuration` token in design-tokens.md)
 - **Rotation indicator:** a subtle line or gradient arc that rotates smoothly around the circle showing current position in the cycle, driven by the audio scheduler's clock
 - **Breathing animation:** the entire circle subtly scales between 0.98x and 1.02x on each full cycle, creating an organic "breathing" feel
 - **Technology:** `react-native-skia` for drawing the circle, dots, and rotation indicator; `react-native-reanimated` for all animations targeting 60fps on UI thread
@@ -29,10 +30,11 @@ The main polyrhythm player screen, accessible from the Practice tab. This is the
 - **BPM display:** large numeric readout of current BPM (e.g., "72 BPM"), tappable to open a numeric input modal for precise entry
 - **BPM slider:** horizontal slider, range **40–160 BPM** (MVP), continuous, updates live while playing — the audio engine handles smooth tempo transitions without audible glitches
 - **Tap tempo button:** icon button (metronome icon or "TAP" label)
-  - User taps 4+ times; BPM calculated from average interval of last 4–8 taps
-  - Taps older than 3 seconds are discarded (resets the sequence)
+  - Calls `audioStore.tapTempo()` on each tap
+  - Algorithm and timeout logic are owned by the audio engine (see `audio-engine/spec.md`, Tempo Engine)
+  - UI shows: tap tempo button, current detected BPM during tapping
+  - Do NOT redefine the algorithm here
   - Visual feedback: button pulses on each tap
-  - After 4+ taps with consistent interval, BPM updates immediately
 
 ### Sound Selectors
 - One dropdown per layer (Layer A, Layer B)
@@ -41,12 +43,15 @@ The main polyrhythm player screen, accessible from the Practice tab. This is the
 - Sound change takes effect at the **start of the next cycle** (not mid-cycle) to avoid jarring transitions
 - Default: Layer A = Click, Layer B = Clave
 
-### Volume Sliders
-- One horizontal slider per layer, labeled "Layer A" / "Layer B" with the layer color
+### Volume Controls
+- **Layer A volume slider:** horizontal slider, labeled "Layer A" with the layer color
+- **Layer B volume slider:** horizontal slider, labeled "Layer B" with the layer color
 - Range: 0% to 100%, default 80%
 - Volume change is **immediate** (no waiting for cycle boundary)
 - Mute icon at left end; tapping it toggles mute for that layer
 - Visual: slider track fill uses the respective layer color
+- **Master volume:** controlled via system volume (no in-app master volume slider at MVP)
+- Note: `audioStore.masterVolume` exists in the engine but is not exposed in MVP UI. System volume serves this purpose.
 
 ### Stereo Split Toggle
 - Headphone icon button, toggleable
@@ -141,8 +146,65 @@ On app launch, if `settingsStore` has saved player settings:
 
 ---
 
+## Audio-Visual Latency Compensation
+
+Mobile audio output has inherent latency between scheduling and audible output (10-80ms depending on device).
+Visual beat animations must be offset to align with perceived audio.
+
+- Read `settingsStore.audioLatencyOffsetMs` (default: 0, range: -100 to +100)
+- Delay visual beat pulse animations by this offset
+- Future: Add a calibration screen in Settings where user taps along to a beat to auto-detect offset
+- MVP: Ship with offset=0, document as known limitation
+
+---
+
+## Session Recording
+
+The core player owns creation of `Session` records (from canonical `data-models.md`):
+
+1. On `play()`: create a new Session with `startedAt: new Date().toISOString()`, `bpmStart`, `polyrhythmId`, `mode: 'free-play'`
+2. On `stop()` or screen exit: set `endedAt`, `bpmEnd`, calculate `duration`
+3. If session duration >= 30 seconds: show feel-state prompt ("How did [ratio] feel today?")
+   - Options: 'executing' | 'hearing' | 'feeling' (see PRD Section 7.7)
+   - Store response in `Session.feelStateAfter`
+   - If dismissed without selection: `feelStateAfter: null`
+4. Write completed Session to `sessionStore.addSession()`
+5. Sessions < 10 seconds are discarded (accidental plays)
+
+All types reference canonical `data-models.md` Session type.
+
+---
+
+## Error States
+
+- **Audio load failure:** Show inline banner "Couldn't load sounds. Tap to retry." with retry button.
+  If retry fails 3 times, show "Audio unavailable on this device" with link to troubleshooting.
+- **Playback failure:** Show toast "Playback interrupted" and auto-pause. User taps Play to retry.
+- **Sound pool exhaustion:** Visual beat pulse fires without audio for that beat.
+  No user-visible error (graceful degradation).
+
+---
+
+## Interruption Handling
+
+- **Phone call:** Audio pauses. On call end, show "Paused" overlay with Resume button.
+  Session timer pauses (does not count call duration).
+- **Notification overlay:** No effect on playback (audio continues).
+- **Siri/Google Assistant:** Audio pauses, resumes on assistant dismissal.
+- **Background:** Audio continues by default (metronome use case).
+  Configurable via `settingsStore.playInBackground`.
+- **Headphone disconnect:** Audio pauses immediately. Show "Headphones disconnected" toast.
+
+---
+
 ## Accessibility
 
+- **Haptic feedback:** Optional haptic pulse on each beat (configurable in Settings).
+  Uses `expo-haptics` light impact for regular beats, medium impact for beat 1.
+- **Screen reader:** Announce ratio, BPM, and play state changes.
+  Beat position is NOT announced (too frequent), but cycle completion is.
+- **Reduced motion:** If system reduce-motion is enabled, replace pulse animations with opacity changes.
+- **Large text:** All BPM and ratio labels respect dynamic type sizing.
 - All controls reachable via VoiceOver / TalkBack
 - BPM value announced on slider change
 - Play/Pause state announced

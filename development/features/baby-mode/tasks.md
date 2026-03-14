@@ -6,15 +6,52 @@ Priority: P0 (MVP)
 
 ---
 
+## 0. Safety Infrastructure
+
+- [ ] **Task 0.1: Implement `BABY_MAX_VOLUME` constant and volume cap utility**
+  - Define `BABY_MAX_VOLUME = 0.5` constant
+  - Create utility: `capBabyVolume(requested: number): number` returning `Math.min(requested, BABY_MAX_VOLUME)`
+  - All baby audio playback must use this utility
+  - **AC:** Volume never exceeds 0.5 in any baby mode audio path.
+
+- [ ] **Task 0.2: Implement session timer with 180s limit, 150s warning, 60s extension**
+  - Reusable `useBabySessionTimer` hook
+  - At 150 seconds: fires `onWarning` callback (show "Almost done!" indicator)
+  - At 180 seconds: fires `onTimeLimit` callback (auto-pause, show "Time for a break!" screen)
+  - Parent can extend by 60 seconds (one extension per session max)
+  - **AC:** Timer warns at 150s, stops at 180s, extension adds 60s, only one extension allowed.
+
+- [ ] **Task 0.3: Implement parental gate component ("hold two circles for 2 seconds")**
+  - Reusable `ParentalGate` component
+  - Two circles that must be simultaneously held for 2 seconds to unlock
+  - On success: fires `onUnlock` callback
+  - On failure/release: resets silently (no error message to confuse toddlers)
+  - **AC:** Gate blocks navigation until both circles held for 2s. Single taps do not unlock.
+
+- [ ] **Task 0.4: Add volume warning modal for first Baby Mode entry**
+  - On first-ever Baby Mode entry, show modal: "Please check your device volume. Baby Mode limits audio to safe levels."
+  - Track shown status in AsyncStorage so it only appears once
+  - **AC:** Warning shows on first entry, does not re-appear after dismissal.
+
+- [ ] **Task 0.5: Wrap Baby Mode tab exit navigation with parental gate**
+  - Navigating from Baby Mode tab to any other tab triggers ParentalGate
+  - Settings within Baby Mode also gated
+  - Entering Baby Mode does NOT require gate
+  - **AC:** Cannot exit Baby Mode without completing parental gate. Can enter freely.
+
+---
+
 ## 1. Baby Store & Profile
 
 - [ ] **Task 1.1: Create babyStore (Zustand)**
-  - State shape:
+  - State shape (canonical source: `data-models.md`):
     ```
     babyProfile: {
-      name: string | null,
-      birthDate: string | null,     // ISO date
-      stageOverride: number | null  // manual stage override
+      id: string,                   // unique profile ID
+      userId: string,               // owning user ID
+      name: string,                 // required, default "Baby"
+      birthDate: string,            // ISO date, required
+      stageOverride: number | null  // manual stage override (number, not boolean)
     } | null
     sessions: BabySession[]
     ```
@@ -113,8 +150,8 @@ Priority: P0 (MVP)
 
 - [ ] **Task 5.1: Build DuetTapScreen component**
   - Split screen layout: two large tap zones side by side
-  - Left zone: parent color (`tokens.baby.colorParent`), labeled "You"
-  - Right zone: baby color (`tokens.baby.colorBaby`), labeled baby's name or "Baby"
+  - Left zone: parent color (`tokens.baby.babyTapZoneA`), labeled "You"
+  - Right zone: baby color (`tokens.baby.babyTapZoneB`), labeled baby's name or "Baby"
   - Minimum 80px tap targets, each fills roughly half the screen width
   - Small "X" close button in top corner
   - BPM stepper at top center (range 60–100, default 80, step 5)
@@ -267,9 +304,18 @@ Priority: P0 (MVP)
 
 ---
 
-## Dependency Notes
+## Dependencies
 
-- Task 5.2 and 6.3 require baby-specific audio samples (chime, bell, marimba/xylophone). These need to be sourced/created and added to the sound asset pipeline.
-- Task 8.2 depends on the app having a theme system or `ThemeProvider` that supports dynamic token switching.
+### Dependency: Audio Assets
+**BLOCKS Tasks 5-7 (Duet Tap, Visualizer, Activity Cards)**
+Baby-specific audio samples (`soft-chime.wav`, `soft-bell.wav`) must be sourced/created
+before any baby audio features can be tested. See audio-engine/tasks.md Task: Audio Assets.
+
+### Dependency: ThemeProvider
+**BLOCKS Task 8 (Theme Switching)**
+Requires a ThemeProvider component from the navigation shell foundation.
+See navigation-shell/tasks.md for the ThemeProvider task.
+
+### Other Dependencies
 - Task 9.1 depends on `userStore.profile.role` being set during onboarding.
 - Tasks 5.1–5.5 and 6.1–6.5 can be built independently of the home screen (tasks 3.x).

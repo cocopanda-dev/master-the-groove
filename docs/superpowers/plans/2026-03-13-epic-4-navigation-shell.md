@@ -1,4 +1,6 @@
-# Epic 4: Navigation Shell -- Implementation Plan
+# Epic 3: Navigation Shell -- Implementation Plan
+
+> **Epic numbering updated 2026-03-13.** This was formerly Epic 4. Now Epic 3 per unified numbering scheme.
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -109,16 +111,16 @@ master-the-groove/
 - [ ] **Step 1: Install runtime dependencies**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 npx expo install expo-keep-awake @gorhom/bottom-sheet @expo/vector-icons
 ```
 
-> `@gorhom/bottom-sheet` requires `react-native-reanimated` and `react-native-gesture-handler`, which are already installed from Epic 0.
+> `@gorhom/bottom-sheet` requires `react-native-reanimated` and `react-native-gesture-handler`, which are already installed from Epic 0 (Developer Infrastructure).
 
 - [ ] **Step 2: Verify installation**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 npx expo doctor
 ```
 
@@ -261,7 +263,7 @@ jest.mock('@expo/vector-icons', () => require('./mocks/expo-vector-icons'));
 - [ ] **Step 7: Verify mocks load**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 npx jest --passWithNoTests --config jest.config.ts 2>&1 | head -20
 ```
 
@@ -405,7 +407,7 @@ describe('TAB_ORDER constants', () => {
 - [ ] **Step 2: Run test -- expect failure**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 npx jest src/navigation/__tests__/constants.test.ts --no-coverage 2>&1 | tail -5
 ```
 
@@ -527,7 +529,7 @@ export {
 - [ ] **Step 5: Run test -- expect pass**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 npx jest src/navigation/__tests__/constants.test.ts --no-coverage
 ```
 
@@ -610,7 +612,7 @@ describe('useBabyTabVisible', () => {
 - [ ] **Step 2: Run test -- expect failure**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 npx jest src/navigation/hooks/__tests__/use-baby-tab-visible.test.ts --no-coverage 2>&1 | tail -5
 ```
 
@@ -660,7 +662,7 @@ export { useKeepAwakeWhilePlaying } from './use-keep-awake-while-playing';
 - [ ] **Step 5: Run test -- expect pass**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 npx jest src/navigation/hooks/__tests__/use-baby-tab-visible.test.ts --no-coverage
 ```
 
@@ -738,7 +740,7 @@ describe('useBabyPalette', () => {
 - [ ] **Step 2: Run test -- expect failure**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 npx jest src/navigation/hooks/__tests__/use-baby-palette.test.ts --no-coverage 2>&1 | tail -5
 ```
 
@@ -824,7 +826,7 @@ export type { BabyPaletteResult };
 - [ ] **Step 4: Run test -- expect pass**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 npx jest src/navigation/hooks/__tests__/use-baby-palette.test.ts --no-coverage
 ```
 
@@ -918,7 +920,7 @@ describe('useKeepAwakeWhilePlaying with always option', () => {
 - [ ] **Step 2: Run test -- expect failure**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 npx jest src/navigation/hooks/__tests__/use-keep-awake-while-playing.test.ts --no-coverage 2>&1 | tail -5
 ```
 
@@ -977,7 +979,7 @@ export type { KeepAwakeOptions };
 - [ ] **Step 4: Run test -- expect pass**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 npx jest src/navigation/hooks/__tests__/use-keep-awake-while-playing.test.ts --no-coverage
 ```
 
@@ -986,7 +988,7 @@ Expected: All 5 tests pass.
 - [ ] **Step 5: Run all navigation tests so far**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 npx jest src/navigation/ --no-coverage
 ```
 
@@ -1130,7 +1132,7 @@ export default RootLayout;
 - [ ] **Step 2: Verify TypeScript compiles**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 npx tsc --noEmit --pretty 2>&1 | head -30
 ```
 
@@ -1280,7 +1282,7 @@ export default TabLayout;
 - [ ] **Step 2: Verify TypeScript**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 npx tsc --noEmit --pretty 2>&1 | grep "_layout" | head -10
 ```
 
@@ -1492,7 +1494,7 @@ export default SettingsLayout;
 - [ ] **Step 6: Verify all files exist**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 ls app/\(tabs\)/learn/_layout.tsx app/\(tabs\)/practice/_layout.tsx app/\(tabs\)/baby/_layout.tsx app/\(tabs\)/progress/_layout.tsx app/\(tabs\)/settings/_layout.tsx
 ```
 
@@ -1794,7 +1796,7 @@ export default SettingsScreen;
 - [ ] **Step 6: Verify all screen files exist**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 find app/\(tabs\) -name "*.tsx" -not -name "_layout.tsx" | sort
 ```
 
@@ -2097,7 +2099,7 @@ export default BabyAgeScreen;
 - [ ] **Step 6: Verify all onboarding files exist**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 ls app/\(onboarding\)/_layout.tsx app/\(onboarding\)/index.tsx app/\(onboarding\)/role.tsx app/\(onboarding\)/genres.tsx app/\(onboarding\)/baby-age.tsx
 ```
 
@@ -2240,7 +2242,7 @@ describe('BottomSheetContainer', () => {
 - [ ] **Step 2: Run test -- expect failure**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 npx jest src/design-system/components/bottom-sheet-container/__tests__/BottomSheetContainer.test.tsx --no-coverage 2>&1 | tail -5
 ```
 
@@ -2357,7 +2359,7 @@ export type { BottomSheetContainerProps, BottomSheetContainerRef } from './types
 - [ ] **Step 6: Run test -- expect pass**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 npx jest src/design-system/components/bottom-sheet-container/__tests__/BottomSheetContainer.test.tsx --no-coverage
 ```
 
@@ -2401,7 +2403,7 @@ Add or update the `scheme` field in `app.json` under the `expo` key:
 - [ ] **Step 2: Verify app.json is valid JSON**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 node -e "const json = require('./app.json'); console.log('scheme:', json.expo.scheme);"
 ```
 
@@ -2428,7 +2430,7 @@ describe('deep link configuration', () => {
 - [ ] **Step 4: Run test -- expect pass**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 npx jest src/navigation/__tests__/deep-link-config.test.ts --no-coverage
 ```
 
@@ -2456,7 +2458,7 @@ This task runs the complete test suite and verifies the file structure is correc
 - [ ] **Step 1: Run all navigation tests**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 npx jest src/navigation/ --no-coverage --verbose
 ```
 
@@ -2470,7 +2472,7 @@ Expected: All tests pass:
 - [ ] **Step 2: Run BottomSheetContainer tests**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 npx jest src/design-system/components/bottom-sheet-container/ --no-coverage --verbose
 ```
 
@@ -2479,16 +2481,16 @@ Expected: All 4 tests pass.
 - [ ] **Step 3: Run full project test suite**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 npx jest --no-coverage 2>&1 | tail -20
 ```
 
-Expected: All tests pass (including tests from Epic 0).
+Expected: All tests pass (including tests from Epic 0/Developer Infrastructure).
 
 - [ ] **Step 4: TypeScript check**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 npx tsc --noEmit --pretty
 ```
 
@@ -2497,7 +2499,7 @@ Expected: No TypeScript errors.
 - [ ] **Step 5: Verify complete file structure**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 find app -name "*.tsx" | sort
 ```
 
@@ -2555,7 +2557,7 @@ All 15 routes accounted for.
 - [ ] **Step 7: Lint check**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 npx eslint src/navigation/ --ext .ts,.tsx 2>&1 | tail -10
 ```
 
@@ -2611,3 +2613,17 @@ feat(nav): configure groovecore:// deep link scheme in app.json
 ```
 
 13 incremental commits, each representing a single logical change.
+
+> **Type Source:** All types MUST match `development/contracts/data-models.md`.
+> If types in this plan differ from data-models.md, data-models.md is authoritative.
+> Update this plan to match, not the other way around.
+
+---
+
+## Done Criteria
+- [ ] All 5 tabs render and navigate correctly
+- [ ] ThemeProvider switches between default and baby palettes
+- [ ] Error boundaries catch and display tab-level errors
+- [ ] Splash screen waits for fonts, sounds, AND store rehydration
+- [ ] Onboarding gate correctly routes new vs returning users
+- [ ] Deep links navigate to correct screens

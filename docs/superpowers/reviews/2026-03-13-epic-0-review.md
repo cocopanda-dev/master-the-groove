@@ -6,9 +6,25 @@
 
 ---
 
+## Review Status
+
+This review was conducted on 2026-03-13.
+
+### Findings Incorporated
+- [ ] Epic numbering unified (new scheme applied across all docs)
+- [ ] BottomSheet conflict resolved (using @gorhom/bottom-sheet)
+- [ ] Design system reduced to essential components
+- [ ] Type drift addressed (data-models.md is canonical source)
+- [ ] Build verification added (expo start in done criteria)
+- [ ] Hardcoded paths fixed
+
+All plans should be updated to reflect these findings before implementation begins.
+
+---
+
 ## Executive Summary
 
-Epic 0 is well-structured and covers the critical engineering guardrails (TypeScript strict, ESLint, Jest, path aliases, design tokens, i18n, error handling). However, it has five material issues: (1) Epic 1 from the master todolist is almost entirely redundant with Epic 0 and should be eliminated; (2) Epic 0 installs `expo-av` speculatively -- no code in Epic 0 consumes it, and its Jest mock belongs closer to Epic 2; (3) there is no build verification step -- the plan never runs the app on an iOS simulator or Android emulator, meaning subsequent epics may inherit a broken foundation; (4) the design system builds 11 components via TDD, but only 4 are consumed by the next three epics, meaning 7 components are speculative work; (5) shared TypeScript types drift from the canonical `data-models.md` contract in several field names and missing types (e.g., `AudioConfig`, `SoundId`, `DisappearingBeatConfig`, `WeeklySummary` are all absent).
+Epic 0 is well-structured and covers the critical engineering guardrails (TypeScript strict, ESLint, Jest, path aliases, design tokens, i18n, error handling). However, it has five material issues: (1) Old Epic 1 (Project Scaffolding) from the master todolist is almost entirely redundant with Epic 0 and should be eliminated (now resolved -- absorbed into Epic 0); (2) Epic 0 installs `expo-av` speculatively -- no code in Epic 0 consumes it, and its Jest mock belongs closer to Epic 1/Audio Engine; (3) there is no build verification step -- the plan never runs the app on an iOS simulator or Android emulator, meaning subsequent epics may inherit a broken foundation; (4) the design system builds 11 components via TDD, but only 4 are consumed by the next three epics, meaning 7 components are speculative work; (5) shared TypeScript types drift from the canonical `data-models.md` contract in several field names and missing types (e.g., `AudioConfig`, `SoundId`, `DisappearingBeatConfig`, `WeeklySummary` are all absent).
 
 ---
 
@@ -37,24 +53,24 @@ Absorb its two uncovered items as follows:
 
 1. **Build verification on simulators** -- Add to Epic 0 as a new Task (between Task 21 and Task 22). This is the most important missing piece. Without it, you are shipping an untested foundation.
 
-2. **Supabase project setup** -- Move to Epic 3 (Data Layer). Supabase is consumed exclusively by Epic 3. First principles says: set up infrastructure where it is consumed, not speculatively in a foundational layer that does not use it.
+2. **Supabase project setup** -- Move to Epic 2 (Data Layer). Supabase is consumed exclusively by the Data Layer. First principles says: set up infrastructure where it is consumed, not speculatively in a foundational layer that does not use it.
 
 3. **Prettier configuration** -- Add to Epic 0 Task 5 (ESLint). It is a one-file addition (`.prettierrc`) and should be part of the linting guardrails.
 
-4. **`@shopify/react-native-skia`** -- Do NOT install in Epic 0. It is consumed only by the radial visualizer in Epic 6 (Core Player). Install it in Epic 6.
+4. **`@shopify/react-native-skia`** -- Do NOT install in Epic 0. It is consumed only by the radial visualizer in Epic 5 (Core Player). Install it in Epic 5.
 
-After elimination, renumber all subsequent epics:
+After elimination, renumber all subsequent epics (this renumbering has been applied):
 
-- Old Epic 2 (Audio Engine) becomes Epic 1
-- Old Epic 3 (Data Layer) becomes Epic 2
-- Old Epic 4 (Navigation Shell) becomes Epic 3
-- And so on through Epic 11
+- Old Epic 2 (Audio Engine) is now Epic 1
+- Old Epic 3 (Data Layer) is now Epic 2
+- Old Epic 4 (Navigation Shell) is now Epic 3
+- And so on through Epic 11 (was Epic 12)
 
 ---
 
 ## B. Missing Items for Consuming Epics
 
-### For Epic 2 (Audio Engine)
+### For Epic 1 (Audio Engine, formerly Epic 2)
 
 | Requirement | Provided by Epic 0? | Details |
 |---|---|---|
@@ -69,7 +85,7 @@ After elimination, renumber all subsequent epics:
 
 **Gap: Add `SoundId` and `AudioConfig` to `src/types/` in Task 8.** These are shared types consumed by multiple epics (Audio Engine, Core Player, Feel Lessons, Disappearing Beat).
 
-### For Epic 3 (Data Layer)
+### For Epic 2 (Data Layer, formerly Epic 3)
 
 | Requirement | Provided by Epic 0? | Details |
 |---|---|---|
@@ -93,7 +109,7 @@ After elimination, renumber all subsequent epics:
 
 **Missing mock: Add an AsyncStorage mock** to `src/__tests__/mocks/async-storage.ts`. Every store that uses Zustand's `persist` middleware needs this in tests.
 
-### For Epic 4 (Navigation Shell)
+### For Epic 3 (Navigation Shell, formerly Epic 4)
 
 | Requirement | Provided by Epic 0? | Details |
 |---|---|---|
@@ -103,13 +119,13 @@ After elimination, renumber all subsequent epics:
 | Path alias for design system | YES | `@design-system` alias |
 | `app/_layout.tsx` with provider hierarchy | YES | Task 19 |
 | Expo Router configured | YES | Task 2 (expo-router installed), Task 19 (Stack used) |
-| `@gorhom/bottom-sheet` installed | NO | Epic 0's BottomSheet (Task 12g) deliberately uses `Modal + Animated.View` instead. The nav shell spec (Section 4) explicitly requires `@gorhom/bottom-sheet`. This is a conflict |
-| `expo-keep-awake` installed | NO | Needed by nav shell for screen-awake behavior (spec Section 6) |
+| `@gorhom/bottom-sheet` installed | NO | Epic 0's BottomSheet (Task 12g) deliberately uses `Modal + Animated.View` instead. The Epic 3/Nav Shell spec explicitly requires `@gorhom/bottom-sheet`. This is a conflict -- **RESOLVED: Task 12g removed, use @gorhom/bottom-sheet in Epic 3** |
+| `expo-keep-awake` installed | NO | Needed by Epic 3/Nav Shell for screen-awake behavior |
 | Reanimated mock for tests | NO | No jest mock for `react-native-reanimated` beyond the NativeAnimatedHelper silence in jest-setup |
 
 **Conflicts:**
-1. Epic 0 Task 12g builds a homebrew BottomSheet, but the navigation shell spec explicitly requires `@gorhom/bottom-sheet`. Recommendation: Remove Task 12g entirely. Defer BottomSheet to Epic 4, which should install `@gorhom/bottom-sheet` and build its own wrapper.
-2. `expo-keep-awake` is not installed. This is fine -- install it in Epic 4 where it is consumed.
+1. Epic 0 Task 12g builds a homebrew BottomSheet, but the navigation shell spec explicitly requires `@gorhom/bottom-sheet`. Recommendation: Remove Task 12g entirely. Defer BottomSheet to Epic 3 (Navigation Shell), which should install `@gorhom/bottom-sheet` and build its own wrapper. **RESOLVED: Task 12g marked for removal in Epic 0 plan.**
+2. `expo-keep-awake` is not installed. This is fine -- install it in Epic 3 (Navigation Shell) where it is consumed.
 
 **Missing mock: Add a reanimated mock.** The nav shell uses `react-native-reanimated` for the baby mode palette transition. The standard Reanimated jest mock should be added to jest-setup.ts.
 
@@ -153,25 +169,25 @@ Epic 0 Task 12 builds 11 design system components. First principles question: wh
 
 ### Component Usage by Next Consumers
 
-| Component | Epic 2 (Audio) | Epic 3 (Data) | Epic 4 (Nav Shell) | First real use | Verdict |
+| Component | Epic 1 (Audio) | Epic 2 (Data) | Epic 3 (Nav Shell) | First real use | Verdict |
 |---|---|---|---|---|---|
-| **Text** | No | No | Yes (headers, labels) | Epic 4 | BUILD NOW |
-| **Button** | No | No | Yes (tab interactions) | Epic 4 | BUILD NOW |
-| **TapTarget** | No | No | No | Epic 6 (Core Player) | DEFER |
-| **Icon** | No | No | Yes (tab bar icons) | Epic 4 | BUILD NOW |
-| **Badge** | No | No | No | Epic 10 (Progress) | DEFER |
-| **Spinner** | No | No | Yes (splash loading) | Epic 4 | BUILD NOW |
-| **Card** | No | No | No | Epic 5 (Onboarding) or Epic 10 | DEFER |
-| **Slider** | No | No | No | Epic 6 (Core Player BPM) | DEFER |
-| **ProgressBar** | No | No | No | Epic 7 (Feel Lessons) | DEFER |
-| **BottomSheet** | No | No | Yes, but conflicts (see B) | Epic 4 | REMOVE (conflict with @gorhom) |
-| **Dialog** | No | No | No | Epic 5+ (confirmations) | DEFER |
+| **Text** | No | No | Yes (headers, labels) | Epic 3 | BUILD NOW |
+| **Button** | No | No | Yes (tab interactions) | Epic 3 | BUILD NOW |
+| **TapTarget** | No | No | No | Epic 5 (Core Player) | DEFER |
+| **Icon** | No | No | Yes (tab bar icons) | Epic 3 | BUILD NOW |
+| **Badge** | No | No | No | Epic 9 (Progress) | DEFER |
+| **Spinner** | No | No | Yes (splash loading) | Epic 3 | BUILD NOW |
+| **Card** | No | No | No | Epic 4 (Onboarding) or Epic 9 | DEFER |
+| **Slider** | No | No | No | Epic 5 (Core Player BPM) | DEFER |
+| **ProgressBar** | No | No | No | Epic 6 (Feel Lessons) | DEFER |
+| **BottomSheet** | No | No | Yes, but conflicts (see B) | Epic 3 | REMOVE (conflict with @gorhom) |
+| **Dialog** | No | No | No | Epic 4+ (confirmations) | DEFER |
 
 ### Recommendation
 
 **Build in Epic 0:** Text, Button, Icon, Spinner (4 components)
-**Defer to consuming epics:** TapTarget (Epic 6), Badge (Epic 10), Card (Epic 5), Slider (Epic 6), ProgressBar (Epic 7), Dialog (Epic 5+)
-**Remove entirely from Epic 0:** BottomSheet (conflicts with nav shell's @gorhom/bottom-sheet requirement)
+**Defer to consuming epics:** TapTarget (Epic 5), Badge (Epic 9), Card (Epic 4), Slider (Epic 5), ProgressBar (Epic 6), Dialog (Epic 4+)
+**Remove entirely from Epic 0:** BottomSheet (conflicts with Epic 3/Navigation Shell's @gorhom/bottom-sheet requirement)
 
 This reduces Epic 0's design system work from 11 components to 4, cutting roughly 40% of the plan's total effort while delivering everything the next three parallel epics actually need.
 
@@ -185,15 +201,15 @@ The deferred components should be built by the epic that first needs them. This 
 
 | Mock | Present in Epic 0? | Needed by | Gap? |
 |---|---|---|---|
-| `expo-av` | YES (Task 6 Step 4) | Epic 2 (Audio Engine) | No, but premature -- see F |
-| AsyncStorage | NO | Epic 3 (all persisted stores) | YES -- Critical gap |
-| Supabase client | YES (Task 6 Step 6) | Epic 3 (sync queue) | No |
-| `expo-keep-awake` | NO | Epic 4 (nav shell) | Minor -- can be added in Epic 4 |
-| `react-native-reanimated` | PARTIAL (NativeAnimatedHelper silenced) | Epic 4 (baby palette switch), Epic 6+ | YES -- Need standard Reanimated jest mock |
+| `expo-av` | YES (Task 6 Step 4) | Epic 1 (Audio Engine) | No, but premature -- see F |
+| AsyncStorage | NO | Epic 2 (all persisted stores) | YES -- Critical gap |
+| Supabase client | YES (Task 6 Step 6) | Epic 2 (sync queue) | No |
+| `expo-keep-awake` | NO | Epic 3 (nav shell) | Minor -- can be added in Epic 3 |
+| `react-native-reanimated` | PARTIAL (NativeAnimatedHelper silenced) | Epic 3 (baby palette switch), Epic 5+ | YES -- Need standard Reanimated jest mock |
 | Zustand store mock factory | YES (Task 6 Step 5) | All feature epics | No |
-| `expo-secure-store` | NO | Epic 3 (auth token storage) | YES -- Supabase client uses SecureStore for auth storage |
+| `expo-secure-store` | NO | Epic 2 (auth token storage) | YES -- Supabase client uses SecureStore for auth storage |
 | `react-native-safe-area-context` | NO (used in jest-utils.tsx provider but no dedicated mock) | All component tests | Minor -- RNTL usually provides this, but a mock helps |
-| `@react-native-async-storage/async-storage` | NO | Epic 3 (Zustand persist middleware) | YES -- Critical gap |
+| `@react-native-async-storage/async-storage` | NO | Epic 2 (Zustand persist middleware) | YES -- Critical gap |
 
 ### Recommendations
 
@@ -220,7 +236,7 @@ The deferred components should be built by the epic that first needs them. This 
    }));
    ```
 
-4. **Move `expo-av` mock to Epic 2.** Epic 0 has no code that imports `expo-av`. The mock exists in Epic 0 only because `expo-av` is installed in Epic 0, but neither should be there (see Section F).
+4. **Move `expo-av` mock to Epic 1 (Audio Engine).** Epic 0 has no code that imports `expo-av`. The mock exists in Epic 0 only because `expo-av` is installed in Epic 0, but neither should be there (see Section F).
 
 ---
 
@@ -230,24 +246,24 @@ First principles: install a dependency when code in the current epic imports it.
 
 | Dependency | Installed in Epic 0 (Task 2) | First code use | Should be in Epic 0? |
 |---|---|---|---|
-| `react-native-reanimated` | YES | Epic 4 (baby palette animation) | YES -- required by gesture-handler and Expo Router internally |
+| `react-native-reanimated` | YES | Epic 3 (baby palette animation) | YES -- required by gesture-handler and Expo Router internally |
 | `react-native-gesture-handler` | YES | Epic 0 (GestureProvider in Task 18) | YES |
 | `react-native-safe-area-context` | YES | Epic 0 (SafeAreaProvider in Task 18) | YES |
 | `react-native-screens` | YES | Epic 0 (Expo Router dependency) | YES |
-| `expo-av` | YES | Epic 2 (sound pool, playback) | NO -- Move to Epic 2 |
-| `expo-secure-store` | YES | Epic 3 (Supabase auth storage) | NO -- Move to Epic 3 |
-| `@react-native-async-storage/async-storage` | YES | Epic 3 (Zustand persist) | BORDERLINE -- No Epic 0 code uses it, but it is a foundational dependency. Acceptable either way |
+| `expo-av` | YES | Epic 1/Audio Engine (sound pool, playback) | NO -- Move to Epic 1 |
+| `expo-secure-store` | YES | Epic 2/Data Layer (Supabase auth storage) | NO -- Move to Epic 2 |
+| `@react-native-async-storage/async-storage` | YES | Epic 2/Data Layer (Zustand persist) | BORDERLINE -- No Epic 0 code uses it, but it is a foundational dependency. Acceptable either way |
 | `zustand` | YES | Epic 0 (store mock factory uses `create`) | YES |
 | `i18next` + `react-i18next` | YES | Epic 0 (localization provider) | YES |
-| `@shopify/react-native-skia` | NOT installed (mentioned in master todolist Epic 1) | Epic 6 (radial visualizer) | NO -- Correct to not install |
-| `@gorhom/bottom-sheet` | NOT installed | Epic 4 (bottom sheet container) | NO -- Install in Epic 4 |
-| `expo-keep-awake` | NOT installed | Epic 4 (screen-awake hooks) | NO -- Install in Epic 4 |
-| `@react-native-community/slider` | NOT installed (but Slider component in Task 12e references it) | Epic 6 (BPM slider) | NO -- But Task 12e will fail without it. Another reason to defer Slider |
+| `@shopify/react-native-skia` | NOT installed (mentioned in old master todolist) | Epic 5/Core Player (radial visualizer) | NO -- Correct to not install |
+| `@gorhom/bottom-sheet` | NOT installed | Epic 3/Navigation Shell (bottom sheet container) | NO -- Install in Epic 3 |
+| `expo-keep-awake` | NOT installed | Epic 3/Navigation Shell (screen-awake hooks) | NO -- Install in Epic 3 |
+| `@react-native-community/slider` | NOT installed (but Slider component in Task 12e references it) | Epic 5/Core Player (BPM slider) | NO -- But Task 12e will fail without it. Another reason to defer Slider |
 
 ### Recommendations
 
-1. **Remove `expo-av` from Task 2 Step 1.** Move to Epic 2's dependency installation step. Also move its Jest mock to Epic 2.
-2. **Remove `expo-secure-store` from Task 2 Step 1.** Move to Epic 3.
+1. **Remove `expo-av` from Task 2 Step 1.** Move to Epic 1 (Audio Engine) dependency installation step. Also move its Jest mock to Epic 1.
+2. **Remove `expo-secure-store` from Task 2 Step 1.** Move to Epic 2 (Data Layer).
 3. **Keep `@react-native-async-storage/async-storage` in Epic 0.** Even though Epic 0 code doesn't directly import it, it is part of the foundational persistence pattern and Zustand persist middleware is referenced in the architecture.
 4. **Task 12e (Slider) references `@react-native-community/slider` which is not installed.** Since Slider is deferred (Section D), this is resolved automatically. If Slider were kept, the dependency would need to be added.
 
@@ -274,11 +290,11 @@ Ordered by priority (highest first):
 
 ### High (should fix)
 
-4. **Eliminate Epic 1 from master todolist.** Absorb remaining scope (Prettier config, build verification) into Epic 0. Move Supabase project setup to Epic 3. Update master todolist to renumber all epics.
+4. **Eliminate Epic 1 from master todolist.** Absorb remaining scope (Prettier config, build verification) into Epic 0. Move Supabase project setup to Epic 2 (Data Layer). Update master todolist to renumber all epics.
 
-5. **Reduce design system to 4 components.** Keep Text, Button, Icon, Spinner. Defer TapTarget, Badge, Card, Slider, ProgressBar, Dialog to consuming epics. Remove BottomSheet entirely (conflicts with `@gorhom/bottom-sheet` requirement in nav shell spec).
+5. **Reduce design system to 4 components.** Keep Text, Button, Icon, Spinner. Defer TapTarget, Badge, Card, Slider, ProgressBar, Dialog to consuming epics. Remove BottomSheet entirely (conflicts with `@gorhom/bottom-sheet` requirement in Epic 3/Navigation Shell spec).
 
-6. **Remove `expo-av` and `expo-secure-store` from Task 2.** Move to Epics 2 and 3 respectively. Also move the `expo-av` Jest mock from Task 6 to Epic 2.
+6. **Remove `expo-av` and `expo-secure-store` from Task 2.** Move to Epic 1 (Audio Engine) and Epic 2 (Data Layer) respectively. Also move the `expo-av` Jest mock from Task 6 to Epic 1.
 
 7. **Add Reanimated Jest mock** to `jest-setup.ts`. This is needed by any component test that renders animated components.
 
@@ -286,7 +302,7 @@ Ordered by priority (highest first):
 
 8. **Add Prettier configuration.** Create `.prettierrc` in Task 5 with standard settings. Add `prettier` and `eslint-config-prettier` to dev dependencies.
 
-9. **Add `expo-secure-store` Jest mock** to the mocks directory (even if expo-secure-store itself is deferred to Epic 3, the Supabase mock in Task 6 Step 6 imports from `@data-access/supabase` which uses it).
+9. **Add `expo-secure-store` Jest mock** to the mocks directory (even if expo-secure-store itself is deferred to Epic 2/Data Layer, the Supabase mock in Task 6 Step 6 imports from `@data-access/supabase` which uses it).
 
 10. **Add a placeholder `app/index.tsx`** in Task 19 or Task 21b so the app has a visible screen when build-verified. The current root layout uses `Stack` but there is no initial route defined.
 

@@ -40,7 +40,7 @@ app/
 │   └── settings/
 │       └── index.tsx              # Settings screen
 src/
-├── components/
+├── components/                    # UI components (no business logic)
 │   ├── ui/                        # Generic reusable components
 │   │   ├── button.tsx
 │   │   ├── card.tsx
@@ -54,15 +54,15 @@ src/
 │       ├── activity-card.tsx
 │       ├── baby-visualizer-canvas.tsx
 │       └── duet-tap-zone.tsx
-├── stores/
-│   ├── use-audio-store.ts
+├── stores/                        # All Zustand stores (foundation + feature)
+│   ├── use-audio-store.ts         # CANONICAL audio store location
 │   ├── use-user-store.ts
 │   ├── use-session-store.ts
 │   ├── use-lesson-store.ts
 │   ├── use-baby-store.ts
 │   └── use-settings-store.ts
 ├── lib/
-│   ├── audio/                     # Audio engine internals
+│   ├── audio/                     # Audio engine internals (NOT stores)
 │   │   ├── scheduler.ts           # Polyrhythm hit calculation
 │   │   ├── sound-pool.ts          # Sound preloading & pooling
 │   │   └── tap-tempo.ts           # Tap tempo algorithm
@@ -89,6 +89,14 @@ src/
 │   ├── sounds/                    # .wav files
 │   └── images/                    # Icons, illustrations
 ```
+
+**Store location note:** Foundation stores (audio, data) live in `src/stores/` alongside feature stores. The `src/lib/` directory contains engine internals (scheduler, sound-loader, etc.) but NOT the Zustand stores.
+
+---
+
+## Canonical Types
+
+All TypeScript types are defined in `development/contracts/data-models.md` and implemented in `src/types/index.ts`. Do NOT define types in feature specs, task files, or other contract documents.
 
 ---
 
@@ -174,7 +182,8 @@ export const useAudioStore = create<AudioState>()(
       // Actions
       play: () => set({ isPlaying: true }),
       pause: () => set({ isPlaying: false }),
-      setBpm: (bpm) => set({ bpm: Math.max(40, Math.min(160, bpm)) }),
+      // Use BPM_MIN and BPM_MAX from @/constants/audio instead of magic numbers
+      setBpm: (bpm) => set({ bpm: clamp(bpm, BPM_MIN, BPM_MAX) }),
       setRatio: (a, b) => {
         get().pause();
         set({ ratioA: a, ratioB: b });

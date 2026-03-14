@@ -105,6 +105,13 @@ When the Baby tab is the active tab:
 
 This visual shift signals to parents that they are in a distinct, child-safe environment.
 
+**Note:** Transitioning tab bar colors for baby mode may require a **custom tab bar component**
+since Expo Router's `Tabs` `tabBarStyle` is a static StyleSheet.
+
+Implementation approach: custom tab bar using `Animated.View` from react-native-reanimated
+that interpolates between default and baby color sets based on `isBabyMode` shared value.
+Factor this complexity into time estimates.
+
 ---
 
 ## 3. Per-Tab Stack Navigation
@@ -207,8 +214,22 @@ Playback screens must prevent the device from sleeping.
 
 ### Implementation
 
-- Use `expo-keep-awake`'s `useKeepAwake()` hook.
-- Create a utility hook `useKeepAwakeWhilePlaying()` that conditionally activates keep-awake based on `audioStore.isPlaying`.
+Uses imperative API (NOT the hook form, which violates React rules of hooks
+when called conditionally):
+
+```typescript
+useEffect(() => {
+  if (isPlaying) {
+    activateKeepAwakeAsync('playback');
+  } else {
+    deactivateKeepAwake('playback');
+  }
+  return () => deactivateKeepAwake('playback');
+}, [isPlaying]);
+```
+
+- Create a utility hook `useKeepAwakeWhilePlaying()` that wraps the above pattern, reading `audioStore.isPlaying`.
+- For always-awake screens (visualizer, duet tap), use `useKeepAwake()` directly (unconditional, no rules-of-hooks issue).
 - Individual screens import and call the appropriate hook.
 
 ---
@@ -232,6 +253,17 @@ Register a basic URL scheme for future notification-driven navigation:
 - Expo Router handles deep link resolution automatically based on file structure.
 - No custom linking configuration needed for MVP — Expo Router's default path matching is sufficient.
 
+### Deep Link Cold Start
+
+When the app is opened via a deep link from a killed state:
+1. Splash screen shows (fonts, sounds, stores loading)
+2. Deep link URL is captured and queued
+3. After splash dismisses and onboarding check passes, navigate to deep link target
+4. If onboarding incomplete, complete onboarding first, then navigate
+
+Expo Router handles most of this automatically, but the splash screen timing
+must account for the full initialization sequence.
+
 ---
 
 ## 8. Root Layout (`app/_layout.tsx`)
@@ -247,12 +279,64 @@ The root layout is the entry point for the entire app. It wraps all routes with 
 5. **SplashScreen control** — hide splash screen after fonts and sounds load
 6. **Font loading** — load custom fonts via `expo-font`
 
-### Splash Screen Strategy
+### ThemeProvider
 
-1. Keep splash screen visible on app start (`SplashScreen.preventAutoHideAsync()`).
-2. In root layout, load fonts and call audio engine `preloadSounds()` in parallel.
-3. Once both complete, hide splash screen (`SplashScreen.hideAsync()`).
-4. Navigate to onboarding if `!userStore.isOnboarded`, else navigate to `(tabs)`.
+Provides design tokens to the component tree via React context.
+
+```typescript
+interface ThemeContextValue {
+  tokens: typeof defaultTokens;
+  isBabyMode: boolean;
+}
+```
+
+- Default: dark theme tokens (from design-tokens.md)
+- When Baby Mode tab is active: switches to baby warm palette tokens
+- Transition: 200ms animated interpolation between token sets
+- Implementation: `React.createContext` + `useContext` hook
+- Token sets are static objects, not computed — baby tokens are a separate const
+
+### Error Boundaries
+
+Each tab is wrapped in an ErrorBoundary (per coding-conventions.md):
+
+```typescript
+<ErrorBoundary fallback={<TabErrorFallback tabName="Learn" />}>
+  <LearnTab />
+</ErrorBoundary>
+```
+
+`TabErrorFallback` shows:
+- App icon
+- "Something went wrong in [Tab Name]"
+- "Try Again" button (resets error boundary)
+- "Go Home" link (navigates to Learn tab)
+
+Root layout also has a top-level ErrorBoundary for fatal errors.
+
+### Splash Screen Orchestration
+
+The splash screen remains visible until ALL of these complete:
+1. Fonts loaded (`useFonts`)
+2. Essential sounds preloaded (audio engine `preloadSounds()`)
+3. **Zustand stores rehydrated** (all persisted stores report ready)
+
+For store rehydration, use Zustand's `onRehydrateStorage` callback:
+```typescript
+const useUserStore = create(
+  persist(..., {
+    onRehydrateStorage: () => (state) => {
+      useAppReadyStore.getState().markStoreReady('user');
+    }
+  })
+);
+```
+
+Splash screen dismisses only when `useAppReadyStore.allReady` is true.
+This prevents flashing onboarding for returning users.
+
+After splash dismisses:
+- Navigate to onboarding if `!userStore.isOnboarded`, else navigate to `(tabs)`.
 
 ---
 
@@ -278,7 +362,16 @@ Onboarding screens live in `app/(onboarding)/` as a separate group (not inside t
 
 ---
 
-## 10. Boundaries & Constraints
+## 10. 404 Fallback (+not-found.tsx)
+
+Shows:
+- "Page not found" message
+- "Go to Practice" button — navigates to `/(tabs)/practice`
+- Auto-redirect after 3 seconds (with countdown indicator)
+
+---
+
+## 11. Boundaries & Constraints
 
 ### What the navigation shell owns:
 - File-based route definitions and directory structure

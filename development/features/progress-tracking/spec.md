@@ -35,12 +35,22 @@ A visual indicator showing progression through the three feel states:
 
 ---
 
+## Feel-State Self-Report
+
+The feel-state prompt appears ONLY for sessions meeting ALL criteria:
+- Duration >= 30 seconds
+- Mode is 'free-play', 'lesson', or 'disappearing-beat' (not 'duet-tap')
+- User has not already reported for this session
+
+This prevents gaming the feel-state system with trivially short sessions.
+
 ## Self-Report Prompt
 
-Appears after each practice session ends. This is the core feedback mechanism for the feel progression system.
+Appears after each qualifying practice session ends. This is the core feedback mechanism for the feel progression system.
 
 ### Trigger
 - When the user exits a practice session (Core Player stop, lesson completion, Disappearing Beat completion)
+- Only if session meets the feel-state criteria above
 - Displayed as a **bottom sheet** or **modal** that slides up over the current screen
 
 ### Content
@@ -62,10 +72,21 @@ Appears after each practice session ends. This is the core feedback mechanism fo
 - The prompt appears at most once per session (not on every pause/resume, only on session end)
 
 ### Feel State Progression
-- Feel state is **not cumulative or locked** — it is purely self-reported per session
+- Feel state is **not cumulative or locked** -- it is purely self-reported per session
 - A user can report "feeling" one day and "executing" the next (regression is normal and expected)
 - The dashboard shows the **most recent** self-report as the current state
 - History of all reports is preserved in `sessionStore.feelStateReports` for trend analysis
+
+## Feel-State Trend
+
+In addition to the current feel-state badge, show a chronological timeline:
+- Small colored dots (one per session that has a feel-state report)
+- Colors: executing (layerA blue), hearing (warning amber), feeling (success green)
+- Scrollable horizontally if many sessions
+- Shows that progress is non-linear (regression is normal and visible)
+
+If current state is lower than a previous peak, show encouraging message:
+"You've felt it before -- it'll come back with practice."
 
 ---
 
@@ -121,8 +142,20 @@ Summary card displayed at the top of the Progress tab, above the Feel Status Das
   - Regression changes shown neutrally: "3:2 moved from Hearing to Executing — that's normal, keep going"
 
 ### "Week" Definition
-- Monday through Sunday (ISO week)
-- Displayed as "This Week (Mar 9 – Mar 15)"
+
+## Weekly Overview
+
+Weeks are ISO 8601 weeks (Monday through Sunday), NOT rolling 7-day windows.
+
+```typescript
+// Use date-fns or manual calculation for ISO week boundaries
+const weekStart = startOfISOWeek(new Date());
+const weekEnd = endOfISOWeek(new Date());
+```
+
+All "this week" selectors use ISO week boundaries for consistency.
+
+Displayed as "This Week (Mar 9 -- Mar 15)"
 
 ### Extension Point (P2)
 - Slot for **AI-generated narrative summary** (AI Progress Narrator)
@@ -167,11 +200,61 @@ The feel state dashboard shows the **most recent** `feelStateAfter` value per po
 
 ---
 
+## Returning User (Gap > 14 days)
+
+If no sessions exist in the last 14 days:
+- Show "Welcome back!" banner on the Progress tab
+- Display last session date: "Last practice: X days ago"
+- Suggest a re-entry action: "Start with a quick 3:2 warm-up?"
+- Do NOT show stale feel-state prominently -- show it dimmed with "Last reported X days ago"
+
+---
+
+## Empty States
+
+### No Sessions Yet
+- Illustration: simple musical note icon
+- "Start your first practice to see your progress here"
+- CTA button: "Go to Practice" -> navigates to Practice tab
+
+### No Feel-State Reports
+- "Practice for 30+ seconds and we'll ask how it felt"
+
+### No Streaks Yet
+- "Practice on 2 consecutive days to start a streak"
+
+---
+
+## Streak Calculation
+
+Streaks use the device's local timezone at the time of each session recording.
+Each session's `startedAt` is converted to a local calendar date for comparison.
+
+Known edge case: timezone changes during travel may cause a missed day or double day.
+This is accepted for MVP -- streaks are motivational, not contractual.
+
+---
+
+## Session Ownership
+
+Each feature owns its own session creation:
+- Core player: creates 'free-play' sessions
+- Feel lessons: creates 'lesson' sessions (one per full lesson run)
+- Disappearing beat: creates 'disappearing-beat' sessions
+
+Step 7 of a lesson (inline disappearing beat) does NOT create a separate session.
+It contributes data to the parent lesson session instead. The lesson owns the session lifecycle.
+
+The feel-state prompt is triggered by the feature that owns the session, NOT by progress tracking.
+Progress tracking only DISPLAYS data -- it never creates sessions or prompts.
+
+---
+
 ## Edge Cases
 
 - **First session ever:** Weekly overview shows "Your first week! Keep going." instead of zero-value metrics.
 - **No feel state reported:** session appears in history without a feel dot. Dashboard shows the polyrhythm card but with no state badge until a report is submitted.
 - **Multiple sessions same polyrhythm same day:** each session appears individually in history. Feel state dashboard shows the most recent report for that day.
-- **Streak calculation:** a streak breaks if an entire calendar day passes with zero sessions. The streak counts today if at least one session exists today.
+- **Streak calculation:** a streak breaks if an entire calendar day passes with zero sessions. The streak counts today if at least one session exists today. Uses device local timezone (see Streak Calculation section).
 - **Week boundary:** summary resets every Monday. Previous week's summary is not preserved at MVP (post-MVP: historical weekly summaries).
 - **Clock manipulation:** use device time for all timestamps. No server-side validation at MVP.

@@ -96,6 +96,20 @@ Static display at MVP.
 
 ---
 
+### Step 3b — "Mnemonic Practice" (Interactive -- Audio + Vocal)
+
+The polyrhythm plays. The mnemonic phrase is displayed prominently.
+Instruction: "Say the mnemonic along with the rhythm. Try to feel each syllable land on a beat."
+
+- Audio: both layers at BPM 68, stereo split off
+- Display: mnemonic phrase with syllables highlighted in sync with beats
+- Duration: 4 cycles minimum, then "I've got it" button appears
+- No scoring -- purely practice-oriented
+
+This bridges understanding (Step 3) and singing (Step 4).
+
+---
+
 ### Step 4 — "Sing The 3" (type: sing)
 
 **Instruction text:**
@@ -122,7 +136,7 @@ Static display at MVP.
 
 ---
 
-### Step 6 — "Both Hands" (type: hands)
+### Step 6 — "Both Hands" (type: hands) -- REVISED
 
 **Instruction text:**
 "Two tap zones below. Left hand taps Layer A (the 3), right hand taps Layer B (the 2). Follow along with the audio."
@@ -133,9 +147,17 @@ Static display at MVP.
 - Left zone: Layer A color, label "3"
 - Right zone: Layer B color, label "2"
 - Each tap: zone pulses (scale animation), optional haptic feedback
-- Audio plays both layers as a guide; tap zones are for practice, not scored
+- Audio plays both layers as a guide
 
-**No accuracy tracking at MVP** — user self-assesses.
+**Tap zones provide basic timing feedback:**
+- On each tap, compare tap time to nearest expected beat in the playing polyrhythm
+- Show brief visual flash: green (<50ms), amber (50-120ms), orange (>120ms)
+- After the step, show summary: "You hit X of Y beats. Y within the groove zone."
+- This is informational, not gating -- user can proceed regardless of accuracy
+- Minimum engagement: user must tap at least 4 times to enable "Done" button
+
+This provides the first objective signal in the lesson without contradicting
+the "feel over accuracy" philosophy -- it informs without judging.
 
 ---
 
@@ -197,13 +219,15 @@ When all 7 steps are marked done:
 ## State
 
 ### Consumed
-- `audioStore` — for steps 2, 4, 5, 6, 7 (audio playback and visualizer)
-- `lessonStore` — for progress restoration (which steps are complete, which lessons are done)
+- `audioStore` -- for steps 2, 4, 5, 6, 7 (audio playback and visualizer)
+- `lessonStore` -- for progress restoration (which steps are complete, which lessons are done)
 
 ### Written
-- `lessonStore.progressByPolyrhythm[polyrhythmId]` — `LessonProgress` record (currentStep, completed, feelBadgeEarned)
+- Uses `lessonStore` as defined in `data-layer/spec.md` (canonical store shape)
+- `lessonStore.progressByPolyrhythm[polyrhythmId]` -- `LessonProgress` record
 - Actions used: `startLesson(polyrhythmId)`, `advanceStep(polyrhythmId)`, `completeLesson(polyrhythmId)`, `awardFeelBadge(polyrhythmId)`
 - Feel state self-report: saved via `sessionStore.endSession(feelStateAfter)` (the lesson creates a session)
+- All types from canonical `data-models.md`. Do NOT redefine store shape in feature code.
 
 ---
 
@@ -226,8 +250,74 @@ When all 7 steps are marked done:
 
 ### Lesson Data Loader
 - Designed so adding a 4:3 lesson is just adding a new JSON file at `data/lessons/4-3.json`
-- The lesson engine loads the file, the step UI renders it — no new components needed unless a new step type is introduced
+- The lesson engine loads the file, the step UI renders it -- no new components needed unless a new step type is introduced
 - 4:3 lesson data is a follow-up task after 3:2 is validated
+
+---
+
+## Learning Continuity
+
+The lesson is designed as a single-session walkthrough at MVP.
+
+Post-MVP consideration: break into multi-day progressions:
+- Day 1: Steps 1-3b (Listen, Understand, Mnemonic)
+- Day 2: Steps 4-5 (Sing, Body)
+- Day 3: Steps 6-7 (Hands, Disappearing Beat)
+
+MVP ships as a single linear lesson. The `LessonProgress.currentStepIndex` field
+supports resuming mid-lesson if the user exits and returns.
+
+"Repeat Lesson" button available on the lesson completion screen.
+
+---
+
+## Store Integration
+
+Uses `lessonStore` as defined in `data-layer/spec.md` (canonical):
+- `progressByPolyrhythm: Record<string, LessonProgress>`
+- Actions: `startLesson`, `advanceStep`, `completeLesson`, `awardFeelBadge`
+
+All types from canonical `data-models.md`. Do NOT redefine store shape here.
+
+---
+
+## LessonStep Type Reference
+
+All lesson steps use the `LessonStep` type from `data-models.md`.
+See that file for the canonical field list including `secondaryText`,
+`interactionType`, `interactionConfig`, and `audioConfig`.
+
+---
+
+## MVP Lessons
+
+- 3:2 (Son Clave): Full 7-step lesson with content (defined above)
+- 4:3: Placeholder structure, content TBD
+- 2:3 (Reverse Clave): Placeholder structure, content TBD
+
+All three ratios are in MVP_RATIOS. Placeholder lessons show:
+"This lesson is coming soon. Try free play to explore this rhythm!"
+
+---
+
+### BPM Selection Rationale
+
+Each step uses a slightly different BPM to prevent mechanical repetition:
+- Step 2 (Listen): 72 BPM -- comfortable listening tempo
+- Step 4 (Sing): 68 BPM -- slightly slower for vocal coordination
+- Step 5 (Body): 66 BPM -- slowest, allows focus on gross motor coordination
+- Step 6 (Hands): 70 BPM -- slightly faster to build confidence before disappearing beat
+
+All tempos are in the "comfortable" range (60-80 BPM) for beginners.
+Advanced users may find these slow -- post-MVP: add difficulty selector.
+
+---
+
+## Error States
+
+- `loadLesson()` fails: Show "Couldn't load lesson. Tap to retry." with retry button.
+- Audio fails during a step: Show "Audio unavailable" banner, allow step completion without audio.
+- AsyncStorage write fails: Retry silently, log error. Do not block user progression.
 
 ---
 

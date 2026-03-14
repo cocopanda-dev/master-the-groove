@@ -4,6 +4,36 @@ A fully separate experience within the app for parent-child rhythmic bonding. Th
 
 ---
 
+## Safety Requirements (MANDATORY)
+
+### Volume Safety
+- All Baby Mode audio capped at `babyMaxVolume: 0.5` (50% of system volume)
+- On first Baby Mode entry, show volume warning: "Please check your device volume. Baby Mode limits audio to safe levels."
+- Audio engine applies volume cap via: `Math.min(requestedVolume, BABY_MAX_VOLUME)`
+- Volume cap applies to: Duet Tap sounds, Visualizer beats, Activity Card audio
+
+### Session Time Limits
+- Maximum session duration: 180 seconds (3 minutes)
+- At 150 seconds: show gentle "Almost done!" indicator
+- At 180 seconds: auto-pause with "Time for a break!" screen
+- Parent can extend by 60 seconds (one extension per session)
+- Visualizer auto-stops at time limit (does NOT run indefinitely)
+
+### Parental Gate
+- Exiting Baby Mode to other tabs requires a simple parental gate
+- Implementation: "Hold these two circles for 2 seconds" (too complex for toddlers)
+- Settings within Baby Mode also gated
+- Entering Baby Mode does NOT require a gate (easy entry, controlled exit)
+
+### COPPA/GDPR-K Compliance Notes
+- No personal data collected from children directly
+- Baby profile data (name, birth date) entered by parent
+- No advertising, no third-party tracking in Baby Mode
+- Session data stored locally, synced to parent's Supabase account
+- Privacy policy must disclose baby data collection and parental consent
+
+---
+
 ## Design Principles
 
 - **The parent is the primary user** — the baby is the experience
@@ -26,9 +56,21 @@ Stages map to developmental milestones and determine which activities and featur
 | Stage 2 | 6–12 months | Pat-a-Cake Mode | Simple call-response clapping activities |
 | Stage 3 | 12–18 months | Tap Mode | Baby taps oversized on-screen targets |
 
+### Baby Profile Shape
+```typescript
+interface BabyProfile {
+  id: string;
+  userId: string;
+  babyName: string;             // Required (defaults to "Baby" if not provided during onboarding)
+  birthDate: string;            // ISO date string, required
+  stageOverride: number | null; // Manual stage override, null = auto-calculate
+}
+```
+> All types reference canonical definitions in `data-models.md`.
+
 ### Stage Determination
 - **Auto-calculated** from baby profile birth date: `stage = ageToStage(babyProfile.birthDate)`
-- **Manual override** available in baby settings (some babies develop faster/slower)
+- **Manual override** available in baby settings (some babies develop faster/slower) via `stageOverride: number | null`
 - Stage determines which activity cards appear and which features are enabled
 - Stage 0 (0–3 months, passive listening) is excluded from MVP — parents at this stage are directed to use the Core Player with soft sounds
 - Stages 4–5 (18 months–5 years) are post-MVP — data-only additions
@@ -55,6 +97,10 @@ Stages map to developmental milestones and determine which activities and featur
   - "Duet Tap" — launches the Duet Tap screen
   - "Baby Visualizer" — launches the Baby Visualizer screen
 - **Session log shortcut:** "View Sessions" link/button at the bottom, navigates to session history
+
+### Baby Name Display
+If `babyName` is empty or null, display "Your little one" as the fallback name.
+Example: "Your little one, Stage 2 (6-9 months)" instead of "Luna, Stage 2 (6-9 months)"
 
 ### Navigation
 - Baby Mode is a top-level tab (hidden if user role is musician-only, set during onboarding)
@@ -88,6 +134,13 @@ Stages map to developmental milestones and determine which activities and featur
 - One instruction per card — no multi-step complexity
 - Duration indicator at bottom of card (e.g., "~45 seconds")
 - Tapping a card opens a full-screen activity view with a start button and optional audio playback
+
+### Activity Card Audio
+When an activity card has `audioConfig`:
+- Plays a simple single-layer metronome beat at the specified BPM with the specified sound
+- Uses a standalone Audio.Sound instance (NOT the shared audioStore scheduler)
+- Volume capped at `babyMaxVolume`
+- Loops until activity is dismissed or session time limit reached
 
 ### MVP Content (~5 cards per stage)
 
@@ -145,6 +198,11 @@ Stages map to developmental milestones and determine which activities and featur
 - BPM stepper (top center)
 - No other controls — screen is maximally simple for baby interaction
 
+### Accidental Interaction Protection
+- BPM stepper requires long-press (1 second) to activate, preventing accidental baby taps
+- Close/exit button positioned behind parental gate (hold 2 circles for 2 seconds)
+- No navigation elements within baby's reach during active session
+
 ### Screen Behavior
 - Screen stays awake (`expo-keep-awake`)
 - Device rotation locked to portrait (zones are side by side)
@@ -197,14 +255,16 @@ After any baby activity ends (Duet Tap exit, Visualizer exit, or activity card c
 ```typescript
 interface BabySession {
   id: string;
-  activityType: 'duet-tap' | 'visualizer' | 'activity-card';
+  babyProfileId: string;        // References the baby profile
+  activityType: BabyActivityType; // 'duet-tap' | 'visualizer' | 'activity-card'
   activityId?: string;          // ID of the specific activity card, if applicable
   stageId: number;
   babyResponse: 'calm' | 'excited' | 'disengaged' | null;
   durationSeconds: number;      // Auto-tracked from activity start to end
-  timestamp: string;            // ISO date string
+  completedAt: string;          // ISO date string
 }
 ```
+> All types reference canonical definitions in `data-models.md`.
 
 ### History View
 - Chronological list of baby sessions, grouped by day
@@ -231,20 +291,34 @@ When the Baby Mode tab is active, apply design token overrides to create a disti
 - Theme switches on Baby Mode tab focus; reverts on leaving the tab
 - Transition should be smooth (animated background color change over 200ms)
 
-### Token Mapping (from contracts/design-tokens.md)
+### Token Mapping (illustrative only -- see `contracts/design-tokens.md` for canonical values)
 ```
-babyBackground:    '#FFF7ED'  // warm cream (app background in baby mode)
-babySurface:       '#FFFFFF'  // baby mode cards
-babyPrimary:       '#F97316'  // primary actions
-babySecondary:     '#8B5CF6'  // secondary elements
-babyAccent:        '#EC4899'  // celebrations, burst animations
-babyTapZoneA:      '#3B82F6'  // parent tap zone (blue)
-babyTapZoneB:      '#F97316'  // baby/guided tap zone (orange)
-babyCelebration:   '#EAB308'  // burst animation on synced taps
-babyTextPrimary:   '#1C1917'  // main text (dark on light)
-babyTextSecondary: '#78716C'  // subdued text
+babyBackground     // warm cream (app background in baby mode)
+babySurface        // baby mode cards
+babyPrimary        // primary actions
+babySecondary      // secondary elements
+babyAccent         // celebrations, burst animations
+babyTapZoneA       // parent tap zone (blue)
+babyTapZoneB       // baby/guided tap zone (orange)
+babyCelebration    // burst animation on synced taps
+babyTextPrimary    // main text (dark on light)
+babyTextSecondary  // subdued text
 ```
-**Always reference the canonical values in `contracts/design-tokens.md`.** These examples are for quick reference only.
+**Always reference the canonical hex values in `contracts/design-tokens.md`.** The names above are illustrative only.
+
+---
+
+## Audio Architecture
+
+Baby Mode does NOT use the shared polyrhythm scheduler from `audioStore`.
+
+- **Duet Tap:** Uses standalone `Audio.Sound` instances for one-shot tap-triggered sounds.
+  Background beat uses a separate simple metronome (setInterval-based, acceptable precision for baby mode).
+- **Visualizer:** Uses standalone `Audio.Sound` instance for beat-synced notes.
+- **Activity Cards:** Uses standalone `Audio.Sound` for optional background beat.
+
+This separation prevents Baby Mode from interfering with any in-progress adult practice session
+and simplifies the audio pipeline for baby-appropriate use cases.
 
 ---
 
@@ -252,7 +326,6 @@ babyTextSecondary: '#78716C'  // subdued text
 
 ### Consumed
 - `babyStore` — baby profile (name, birth date, stage), session history
-- `audioStore` — for Duet Tap background beat and Visualizer beat sounds
 - `settingsStore` — baby mode preferences (manual stage override, etc.)
 
 ### Written
@@ -287,6 +360,12 @@ babyTextSecondary: '#78716C'  // subdued text
 ---
 
 ## Edge Cases
+
+### No Profile Fallback
+If user cancels baby profile setup:
+- Return to the previous tab (do not loop back to setup)
+- Baby Mode tab shows a setup prompt: "Set up Baby Mode to get started"
+- User can access setup again anytime from the Baby Mode tab
 
 - **No baby profile set:** if user selected "musician only" during onboarding, Baby Mode tab is hidden. If profile exists but birth date is missing, prompt to enter it before showing content.
 - **Baby ages out of Stage 3 (>18 months):** show Stage 3 content with a banner: "More stages coming soon! Stage 3 activities are still great for [baby name]."

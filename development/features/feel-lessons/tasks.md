@@ -118,9 +118,13 @@ Priority: P0 (MVP)
 
 ## 4. 3:2 Lesson Data
 
+**Important:** Create minimal lesson JSON stub (3:2, just step titles and types) FIRST,
+before building step components. Full content populates the JSON after components exist.
+
 - [ ] **Task 4.1: Author 3:2 lesson JSON file**
   - Create `data/lessons/3-2.json` with all 7 steps as defined in the spec
-  - Each step includes: stepNumber, type, title, instruction, secondaryText, audioConfig, interactionType, interactionConfig, extensionSlot (where applicable)
+  - Start with a minimal stub (step titles and types only) to unblock component development
+  - Then populate each step with: stepNumber, type, title, instruction, secondaryText, audioConfig, interactionType, interactionConfig, extensionSlot (where applicable)
   - Validate against `LessonData` type
   - **AC:** JSON file parses correctly and passes type validation. All 7 steps present with correct content matching the spec.
 
@@ -166,17 +170,13 @@ Priority: P0 (MVP)
 
 ## 6. lessonStore Integration
 
-- [ ] **Task 6.1: Create lessonStore (Zustand)**
-  - State shape:
-    ```
-    lessonProgress: Record<string, number[]>   // polyrhythmId -> completed step indices
-    completedLessons: string[]                  // polyrhythm IDs
-    badges: Record<string, string>             // polyrhythmId -> badge type
-    feelStateReports: Array<{ polyrhythmId, state, timestamp }>
-    ```
-  - Actions: `markStepComplete`, `completeLesson`, `awardBadge`, `recordFeelState`, `getProgress`
-  - Persistence: Zustand persist middleware with AsyncStorage
-  - **AC:** Store initializes correctly. State persists across app restarts. All actions update state as expected.
+- [ ] **Task 6.1: Wire up lessonStore from canonical data layer**
+  - Lesson store uses the canonical shape from `data-layer/spec.md`:
+    `progressByPolyrhythm: Record<string, LessonProgress>` with actions from the data layer.
+  - Do NOT create a separate store shape.
+  - Actions from canonical store: `startLesson`, `advanceStep`, `completeLesson`, `awardFeelBadge`
+  - Persistence: handled by data layer (Zustand persist middleware with AsyncStorage)
+  - **AC:** Store initializes correctly using canonical types. State persists across app restarts. All actions update state as expected.
 
 ---
 
@@ -188,6 +188,25 @@ Priority: P0 (MVP)
   - On tap: shows tooltip with slot's `description` + "Coming soon"
   - Used by ContextStep (real-music-context), MnemonicStep (ai-mnemonic-generator), SingStep (ai-vocal-coach)
   - **AC:** Extension slot buttons render in the correct steps. Tapping shows the "Coming soon" message.
+
+---
+
+## 8. Error Handling
+
+- [ ] **Task 8.1: Error Handling**
+  - Handle lesson load failure (retry UI: "Couldn't load lesson. Tap to retry.")
+  - Handle audio failure during steps (graceful degradation: "Audio unavailable" banner, allow step completion without audio)
+  - Handle AsyncStorage write failure (silent retry, log error, do not block user progression)
+
+---
+
+## 9. Accessibility
+
+- [ ] **Task 9.1: Accessibility**
+  - Screen reader labels for all interactive elements
+  - Announce step transitions
+  - Reduced motion: replace animations with opacity transitions
+  - Ensure tap zone meets minimum 44x44pt touch target
 
 ---
 

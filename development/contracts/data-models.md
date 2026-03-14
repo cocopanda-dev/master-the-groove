@@ -1,3 +1,7 @@
+> **WARNING: CANONICAL TYPE SOURCE** — This file is the single source of truth for all TypeScript types.
+> All specs, tasks, and epic plans MUST reference these types. Do NOT redefine types in other documents.
+> If a type needs to change, change it HERE first, then update dependent specs.
+
 # GrooveCore — Data Models
 
 **Last Updated:** 2026-03-13
@@ -109,8 +113,20 @@ interface Session {
   /** What mode was the user in during this session */
   mode: 'free-play' | 'lesson' | 'disappearing-beat' | 'duet-tap';
 
-  /** Highest disappearing beat stage reached (0 = not attempted, 1-3) */
+  /** Highest disappearing beat stage reached (0 = not attempted, stages 0-3 are used) */
   disappearingBeatStageReached: number;
+
+  /** Drift from beat 1 in ms (negative = early, positive = late) */
+  disappearingBeatDriftMs?: number;
+
+  /** Qualitative drift zone classification */
+  disappearingBeatDriftZone?: 'locked-in' | 'close' | 'drifting';
+
+  /** Which layer was removed */
+  disappearingBeatLayer?: 'A' | 'B';
+
+  /** Number of bars per disappearing stage in this session */
+  disappearingBeatBarsPerStage?: number;
 
   /** User self-reported feel state after session (null if skipped) */
   feelStateAfter: FeelState | null;
@@ -160,8 +176,11 @@ interface BabyProfile {
    */
   currentStage: 0 | 1 | 2 | 3 | 4 | 5;
 
-  /** If true, parent has manually overridden the auto-computed stage */
-  stageOverride: boolean;
+  /**
+   * The manually overridden stage number, or null if using auto-computed stage.
+   * When set, overrides the age-based `currentStage` calculation.
+   */
+  stageOverride: number | null;
 }
 ```
 
@@ -177,15 +196,16 @@ interface BabySession {
 
   /**
    * What type of activity was performed.
-   * Examples: 'bounce', 'pat-a-cake', 'duet-tap', 'visualizer', 'activity-card'
+   * Must be one of the values in BABY_ACTIVITY_TYPES constant.
+   * See BabyActivityType union type below.
    */
-  activityType: string;
+  activityType: BabyActivityType;
 
   /** Duration in seconds */
   duration: number;
 
-  /** Parent-reported baby response */
-  babyResponse: 'calm' | 'excited' | 'disengaged';
+  /** Parent-reported baby response. null when parent dismisses prompt without selecting. */
+  babyResponse: 'calm' | 'excited' | 'disengaged' | null;
 
   /** ISO 8601 */
   completedAt: string;
@@ -247,6 +267,21 @@ interface LessonStep {
   /** Primary instruction text shown to the user */
   instruction: string;
 
+  /** Secondary/subtitle text shown below the primary instruction */
+  secondaryText?: string;
+
+  /**
+   * Interaction model for this step's UI.
+   * - 'tap-zones': interactive tap zones (hands/body steps)
+   * - 'timer': timed exercise with countdown
+   * - 'self-report': user reports their feel state
+   * - 'disappearing-beat': launches disappearing beat mode
+   */
+  interactionType?: 'tap-zones' | 'timer' | 'self-report' | 'disappearing-beat';
+
+  /** Additional configuration for the interaction (varies by interactionType) */
+  interactionConfig?: Record<string, unknown>;
+
   /** Audio configuration for this step (null if step has no audio) */
   audioConfig: AudioConfig | null;
 }
@@ -271,6 +306,9 @@ interface AudioConfig {
   /** Sound for layer B */
   soundB: SoundId;
 
+  /** Which layer(s) to play: 'A' only, 'B' only, or 'both' (default: 'both') */
+  layers?: 'A' | 'B' | 'both';
+
   /** Whether to split layers to left/right audio channels */
   stereoSplit: boolean;
 
@@ -282,11 +320,38 @@ interface AudioConfig {
 }
 ```
 
+### FadeState
+
+```typescript
+/**
+ * Represents an in-progress volume fade on a single layer.
+ * Used by the audio engine to animate volume changes during Disappearing Beat mode.
+ */
+interface FadeState {
+  /** Which layer is fading */
+  layer: 'A' | 'B';
+
+  /** Volume level at fade start (0.0 to 1.0) */
+  fromVolume: number;
+
+  /** Target volume level (0.0 to 1.0) */
+  toVolume: number;
+
+  /** Timestamp (ms) when the fade started */
+  startTime: number;
+
+  /** Duration of the fade in milliseconds */
+  duration: number;
+}
+```
+
 ### SoundId
 
 ```typescript
 /**
  * Available sounds in the app's sound bank.
+ *
+ * Canonical name is SoundId. All specs and stores must use this name (not SoundName).
  *
  * MVP sounds: 'click', 'clave', 'woodblock'
  * Full set includes baby-friendly soft tones.
@@ -329,6 +394,10 @@ interface DisappearingBeatConfig {
 ### WeeklySummary
 
 ```typescript
+/**
+ * Computed on-the-fly from session data. Not persisted to AsyncStorage or Supabase.
+ * Cached in progressStore with TTL-based invalidation.
+ */
 interface WeeklySummary {
   /** References UserProfile.id */
   userId: string;
@@ -556,6 +625,7 @@ export type {
   LessonProgress,
   LessonStep,
   AudioConfig,
+  FadeState,
   SoundId,
   DisappearingBeatConfig,
   WeeklySummary,

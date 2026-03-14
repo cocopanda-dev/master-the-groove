@@ -146,7 +146,7 @@ master-the-groove/
 - [ ] **Step 1: Create Expo project**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 npx create-expo-app@latest . --template blank-typescript --no-install
 ```
 
@@ -1355,6 +1355,14 @@ git commit -m "feat(epic-0): add TapTarget component with WCAG minimum touch tar
 
 ### Task 12: Remaining Design System Components
 
+> **Design System Scope Reduction (per Epic 0 review):**
+> Build only essential components in Epic 0: **Text, Button, Icon, Spinner** (4 components).
+> Defer TapTarget, Badge, Card, Slider, ProgressBar, Dialog to their consuming epics.
+> **REMOVE BottomSheet entirely** from Epic 0 -- it conflicts with `@gorhom/bottom-sheet`
+> which is the canonical implementation (installed in Epic 3/Navigation Shell).
+> Tasks 12b (Badge), 12d (Card), 12e (Slider), 12f (ProgressBar), 12g (BottomSheet),
+> and 12h (Dialog) should be SKIPPED in Epic 0.
+
 Each follows the same TDD cycle as Tasks 9-11: types.ts -> failing test -> implement -> pass -> commit.
 
 #### 12a: Icon Component
@@ -1399,7 +1407,7 @@ describe('Icon', () => {
 });
 ```
 
-- [ ] **Step 3: Implement Icon.tsx** — Use a `View` with text/emoji placeholder (real icon library integration deferred to Epic 1). Set `accessibilityElementsHidden` and `importantForAccessibility` for decorative icons.
+- [ ] **Step 3: Implement Icon.tsx** — Use a `View` with text/emoji placeholder (real icon library integration deferred to Epic 3/Navigation Shell). Set `accessibilityElementsHidden` and `importantForAccessibility` for decorative icons.
 
 - [ ] **Step 4: Run tests, verify pass, commit**
 
@@ -2217,7 +2225,7 @@ Create placeholder `index.ts` files for directories that will be populated in la
 - [ ] **Step 1: Create directory structure with placeholder barrels**
 
 ```bash
-cd /Users/chao.fan/Desktop/dev/jetstream-ci-scripts/master-the-groove
+cd /Users/chao.fan/Desktop/dev/master-the-groove
 
 # Data access layer
 mkdir -p src/data-access/stores src/data-access/supabase src/data-access/hooks
@@ -2382,7 +2390,20 @@ git commit -m "feat(epic-0): add CI pipeline (lint + typecheck + test)"
 | 5: Verification & CI | Tasks 20-22 | Scaffold directories, CI pipeline, full verification pass |
 
 **After Epic 0, you're ready for:**
-- Epic 1 (App Scaffolding) — add tab navigator, placeholder screens
-- Epics 2+3+4 in parallel — Audio Engine, Data Layer, Navigation Shell
+- Epics 1+2+3 in parallel -- Audio Engine, Data Layer, Navigation Shell
 
-**Next plans to write:** Epic 1 (App Scaffolding), Epic 2 (Audio Engine), Epic 3 (Data Layer), Epic 4 (Navigation Shell). These can be planned in parallel once Epic 0 is implemented.
+**Next plans:** Epic 1 (Audio Engine), Epic 2 (Data Layer), Epic 3 (Navigation Shell). These can be planned in parallel once Epic 0 is implemented.
+
+> **Type Source:** All types MUST match `development/contracts/data-models.md`.
+> If types in this plan differ from data-models.md, data-models.md is authoritative.
+> Update this plan to match, not the other way around.
+
+---
+
+## Done Criteria
+- [ ] `npx expo start` launches without errors on iOS simulator and Android emulator
+- [ ] `tsc --noEmit` passes with zero errors
+- [ ] ESLint passes with zero errors
+- [ ] Jest runs with all tests passing
+- [ ] All canonical types from data-models.md are implemented in src/types/index.ts
+- [ ] Project structure matches coding-conventions.md

@@ -55,21 +55,25 @@ Priority: P0 (MVP)
 - [ ] **Task 3.1: Implement tap target and timestamp recording**
   - During Stage 3 (`isTapPhase === true`): render a large tap target (80px+ diameter, accent color, centered)
   - Label: "Tap beat 1"
-  - On each tap: record `Date.now()` (or high-resolution timestamp if available) into an array
+  - On each tap: record `nativeEvent.timestamp` (preferred), falling back to `performance.now()`, then `Date.now()` as last resort
+  - Store taps in array with timestamp source indicator for threshold adjustment
   - Tap visual feedback: brief flash/scale pulse on tap
-  - **AC:** Tap target appears only during Stage 3. Taps are recorded with timestamps. Visual feedback fires on each tap.
+  - **AC:** Tap target appears only during Stage 3. Taps are recorded with hardware-level timestamps when available. Visual feedback fires on each tap.
 
-- [ ] **Task 3.2: Calculate drift on return**
-  - When Stage 3 -> Return transition fires:
-    - Get `actualBeat1` timestamp from `audioStore.getCurrentBeat1Timestamp()`
-    - Get `lastUserTap` from the recorded tap array (most recent tap before the return)
-    - Calculate `drift = lastUserTap - actualBeat1` in milliseconds
-  - Classify drift:
-    - `|drift| <= 50ms` -> "locked" (green)
-    - `50ms < |drift| <= 150ms` -> "close" (amber)
-    - `|drift| > 150ms` -> "drifting" (orange)
+- [ ] **Task 3.2: Calculate drift per cycle (revised)**
+  - Track drift for EVERY expected beat 1 throughout Stage 3, not just the last tap
+  - For each expected beat 1 in Stage 3:
+    - Find the user's nearest tap (within +/-50% of the beat interval)
+    - Calculate drift: `tapTimestamp - expectedBeat1Timestamp` (negative = early, positive = late)
+    - Store in `driftHistory: Array<{ expectedTime: number, tapTime: number | null, driftMs: number | null }>`
+    - `null` tapTime means the user missed that beat 1 entirely
+  - Classify each drift entry using revised zones:
+    - `|drift| <= 50ms` -> "locked-in" (green)
+    - `51ms <= |drift| <= 120ms` -> "close" (amber)
+    - `|drift| > 120ms` -> "drifting" (warm orange)
+  - Final drift for session record = LAST cycle's drift value
   - If no taps recorded: drift = null, zone = null
-  - **AC:** Drift calculation is correct for early taps (negative), late taps (positive), and no taps (null). Zone classification matches spec thresholds.
+  - **AC:** Drift calculated per-cycle, stored in driftHistory array. Final drift uses last cycle. Zone classification uses revised thresholds (50/120ms boundaries).
 
 - [ ] **Task 3.3: Build DriftFeedback display component**
   - Props: `driftMs: number | null`, `zone: 'locked' | 'close' | 'drifting' | null`
@@ -160,6 +164,35 @@ Priority: P0 (MVP)
   - Manages its own engine instance, playback, and tap detection
   - On completion: calls `onComplete` with drift data, does NOT navigate
   - **AC:** Component runs the full disappearing beat flow embedded within a parent screen. Parent receives completion callback with drift data.
+
+---
+
+## 8. Audio Engine API Validation
+
+- [ ] **Task 8.1: Audio Engine API Validation**
+  - Verify audioStore provides: fadeLayer(), muteAll(), unmuteAll(), onCycleBoundary
+  - Test that fade timing aligns with stage transitions
+  - Test that cycle boundary callback fires reliably
+  - MUST pass before building feature on top of audio engine
+
+---
+
+## 9. Session Recording
+
+- [ ] **Task 9.1: Session Recording**
+  - Create Session record using canonical type from data-models.md
+  - Populate disappearing-beat-specific fields (mode, stageReached, driftMs, driftZone, layer, barsPerStage)
+  - Write to sessionStore on session completion
+  - Show feel-state prompt if session duration >= 30s
+
+---
+
+## 10. Error & Edge Cases
+
+- [ ] **Task 10.1: Error & Edge Cases**
+  - Handle: audio engine not ready (show loading state)
+  - Handle: user exits mid-session (save partial session)
+  - Handle: phone call during session (pause, allow resume)
 
 ---
 

@@ -10,6 +10,8 @@ GrooveCore has a well-documented spec-driven development system (PRD, 3 foundati
 
 **Guiding principle:** Fork the DNA, not the code. No internal tools or component libraries are borrowed — only architectural patterns, conventions, and engineering guardrails.
 
+**Architecture trade-off note:** This 7-layer architecture provides strong module boundaries for AI agent parallelism, at the cost of overhead for a solo developer. The ESLint import restrictions can be relaxed during rapid prototyping and tightened before release.
+
 **Why not use the source repo's design system (Zest)?** Zest is tightly coupled to the HelloFresh product ecosystem — its components, tokens, and theming assume a food-delivery context. GrooveCore has a fundamentally different visual identity (dark audio-centric UI, baby-warm palette, beat-synced animations). Building a focused, minimal design system from the existing `design-tokens.md` contract gives full control over accessibility, theming, and audio-specific components (tap targets, radial visualizer wrappers) without carrying unnecessary dependencies.
 
 ---
@@ -77,7 +79,7 @@ master-the-groove/
 │   │   │   ├── card/
 │   │   │   ├── slider/
 │   │   │   ├── icon/
-│   │   │   ├── bottom-sheet/
+│   │   │   ├── bottom-sheet/      # REMOVED: Use @gorhom/bottom-sheet instead (installed in Epic 3)
 │   │   │   ├── dialog/
 │   │   │   ├── spinner/
 │   │   │   ├── progress-bar/
@@ -533,40 +535,40 @@ Add to coding-conventions.md:
 
 ## 8. Updated Epic Order
 
+> **Epic numbering updated 2026-03-13 per unified numbering scheme. Old Epic 1 (Project Scaffolding) absorbed into Epic 0.**
+
 ```
-Epic 0: Developer Infrastructure (NEW - must be first)
+Epic 0: Developer Infrastructure (absorbs old Epic 1: Project Scaffolding)
   - Project scaffold (Expo + TypeScript strict + ESLint + Jest)
   - Path aliases configuration
-  - Design system scaffold (Button, Text, Card, Slider, Icon, TapTarget, BottomSheet)
+  - Design system scaffold (Button, IconButton, typography components)
   - i18next setup with English translations
   - ErrorBoundary component
   - Test utilities (renderWithProviders, mock factories)
   - CI: lint + typecheck + test
 
-Epic 1: App Scaffolding (existing, unchanged)
-Epic 2: Audio Engine (existing, add scheduler-during-mute clarification)
-Epic 3: Data Layer (existing, add auth token storage fix)
-Epic 4: Navigation Shell (existing, unchanged)
-Epic 5: Onboarding (existing, add i18n keys)
-Epic 6: Core Player (existing, add session ownership rule)
-Epic 7: Feel Lessons (existing, unchanged)
-Epic 8: Disappearing Beat (existing, fix bar->cycle, add session ownership)
-Epic 9: Baby Mode (existing, fix activityType type safety)
-Epic 10: Progress Tracking (existing, add session ownership)
-Epic 11: Integration (existing, add "done" criteria checklist)
-Epic 12: Testing & QA (existing, add coverage targets)
+Epic 1: Audio Engine (add scheduler-during-mute clarification)
+Epic 2: Data Layer (add auth token storage fix)
+Epic 3: Navigation Shell (installs @gorhom/bottom-sheet)
+Epic 4: Onboarding (add i18n keys)
+Epic 5: Core Player (add session ownership rule)
+Epic 6: Feel Lessons (unchanged)
+Epic 7: Disappearing Beat (fix bar->cycle, add session ownership)
+Epic 8: Baby Mode (fix activityType type safety)
+Epic 9: Progress Tracking (add session ownership)
+Epic 10: Integration (add "done" criteria checklist)
+Epic 11: Testing & QA (add coverage targets)
 ```
 
 ### Updated Parallelization
 
 ```
 T0: Epic 0 (Developer Infrastructure) — 1 agent, ~5-7 days
-T1: Epic 1 (Scaffolding) — 1 agent, ~1 day
-T2: Epics 2 + 3 + 4 (Audio, Data, Nav) — 3 agents parallel
-T3: Epics 5 + 6 + 9 + 10 (Onboarding, Player, Baby, Progress) — 4 agents parallel
-T4: Epics 7 + 8 (Lessons, Disappearing Beat) — 2 agents parallel
-T5: Epic 11 (Integration) — 1 agent
-T6: Epic 12 (QA) — 1 agent
+T1: Epics 1 + 2 + 3 (Audio, Data, Nav) — 3 agents parallel
+T2: Epics 4 + 5 + 8 + 9 (Onboarding, Player, Baby, Progress) — 4 agents parallel
+T3: Epics 6 + 7 (Lessons, Disappearing Beat) — 2 agents parallel
+T4: Epic 10 (Integration) — 1 agent
+T5: Epic 11 (QA) — 1 agent
 ```
 
 ---
@@ -583,7 +585,7 @@ Minimal set needed before features start. Each component has accessibility props
 | `Slider` | BPM, volume | min, max, step, accessibilityLabel (required), onValueChange |
 | `Icon` | Iconography | name, size, accessibilityLabel OR decorative (one required) |
 | `TapTarget` | Touch area wrapper | minSize (44 default, 80 baby), children |
-| `BottomSheet` | Modals/prompts | visible, onClose, accessibilityLabel |
+| ~~`BottomSheet`~~ | ~~Modals/prompts~~ | REMOVED: Use `@gorhom/bottom-sheet` instead (installed in Epic 3/Navigation Shell) |
 | `ProgressBar` | Lesson progress | progress (0-1), accessibilityLabel |
 | `Badge` | Feel state dots | variant (executing, hearing, feeling), size |
 | `Spinner` | Loading states | size, accessibilityLabel |
@@ -629,7 +631,7 @@ export const colors = {
 | `Slider` | `colors.primary` (track fill), `colors.surface` (track bg), `spacing.xs` height |
 | `Badge` | `colors.success` (feeling), `colors.warning` (hearing), `colors.disabled` (executing) |
 | `TapTarget` | `spacing.tapMinimum` (44px), `spacing.tapMinimumBaby` (80px) |
-| `BottomSheet` | `colors.surface`, `shadows.lg`, `borderRadius.xl` (top corners), `animations.sheetDuration` |
+| ~~`BottomSheet`~~ | REMOVED: Use `@gorhom/bottom-sheet` (Epic 3). Wrapper component `BottomSheetContainer` in Epic 3 consumes these tokens. |
 | `ProgressBar` | `colors.primary` (fill), `colors.surface` (track), `borderRadius.full` |
 
 ### Spacing Scale (`src/design-system/tokens/spacing.ts`)
@@ -816,5 +818,5 @@ export default config;
 | i18next for localization | Industry standard, works well with Expo, enables future multi-language support |
 | ESLint import restrictions | Prevents spaghetti dependencies, enforces module boundaries |
 | TypeScript strict mode | Catches bugs at compile time, reduces runtime errors |
-| Epic 0 before everything | Every subsequent epic benefits from guardrails — investment pays back immediately |
+| Epic 0 before everything | Every subsequent epic benefits from guardrails -- investment pays back immediately |
 | No dark mode in MVP | Simplifies design system scope; can be added post-MVP via token layer |

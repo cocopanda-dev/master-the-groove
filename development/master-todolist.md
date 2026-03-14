@@ -4,6 +4,10 @@
 **PRD Version:** 0.1
 **Status:** Pre-MVP
 
+> **Epic numbering updated 2026-03-13** per unified numbering scheme.
+> Old "Epic 1: Project Scaffolding" has been absorbed into Epic 0 (Developer Infrastructure).
+> All subsequent epics renumbered accordingly. See the numbering table below.
+
 ---
 
 ## How to Use This File
@@ -18,61 +22,106 @@ This is the single source of truth for build order. Before starting any work:
 
 ---
 
+## Epic Numbering (Canonical)
+
+| Epic | Name | Old Number |
+|------|------|------------|
+| 0 | Developer Infrastructure | Was Epic 0 in plans |
+| 1 | Audio Engine | Was Epic 2 |
+| 2 | Data Layer | Was Epic 3 |
+| 3 | Navigation Shell | Was Epic 4 |
+| 4 | Onboarding | Was Epic 5 |
+| 5 | Core Player | Was Epic 6 |
+| 6 | Feel Lessons | Was Epic 7 |
+| 7 | Disappearing Beat | Was Epic 8 |
+| 8 | Baby Mode | Was Epic 9 |
+| 9 | Progress Tracking | Was Epic 10 |
+| 10 | Integration | Was Epic 11 |
+| 11 | Testing & QA | Was Epic 12 |
+
+> Project scaffolding is part of Epic 0 (Developer Infrastructure).
+
+---
+
 ## Epic Build Order
 
 ### Phase 0: Foundations
 
 | Status | Epic | Name | Dependencies | Read Before Starting |
 |--------|------|------|--------------|----------------------|
-| [ ] | **Epic 1** | Project Scaffolding | None | `contracts/coding-conventions.md` |
-| [ ] | **Epic 2** | Audio Engine | Epic 1 | `foundations/audio-engine/spec.md`, `contracts/data-models.md` |
-| [ ] | **Epic 3** | Data Layer | Epic 1 | `foundations/data-layer/spec.md`, `contracts/data-models.md`, `contracts/api-contracts.md` |
-| [ ] | **Epic 4** | Navigation Shell | Epic 1 | `foundations/navigation-shell/spec.md`, `contracts/design-tokens.md` |
+| [ ] | **Epic 0** | Developer Infrastructure | None | `contracts/coding-conventions.md`, [Epic 0 Plan](../docs/superpowers/plans/2026-03-13-epic-0-developer-infrastructure.md) |
+| [ ] | **Epic 1** | Audio Engine | Epic 0 | `foundations/audio-engine/spec.md`, `contracts/data-models.md` |
+| [ ] | **Epic 2** | Data Layer | Epic 0 | `foundations/data-layer/spec.md`, `contracts/data-models.md`, `contracts/api-contracts.md` |
+| [ ] | **Epic 3** | Navigation Shell | Epic 0 | `foundations/navigation-shell/spec.md`, `contracts/design-tokens.md` |
 
 ### Phase 1: MVP Features
 
 | Status | Epic | Name | Dependencies | Read Before Starting |
 |--------|------|------|--------------|----------------------|
-| [ ] | **Epic 5** | Onboarding Flow | Epic 3, Epic 4 | `features/onboarding/spec.md`, `contracts/data-models.md`, `contracts/design-tokens.md` |
-| [ ] | **Epic 6** | Core Player | Epic 2, Epic 4 | `features/core-player/spec.md`, `foundations/audio-engine/spec.md`, `contracts/design-tokens.md` |
-| [ ] | **Epic 7** | Feel Lessons (3:2) | Epic 2, Epic 6 | `features/feel-lessons/spec.md`, `foundations/audio-engine/spec.md`, `contracts/data-models.md` |
-| [ ] | **Epic 8** | Disappearing Beat Mode | Epic 2, Epic 6 | `features/disappearing-beat/spec.md`, `foundations/audio-engine/spec.md` |
-| [ ] | **Epic 9** | Baby Mode | Epic 2, Epic 3, Epic 4 | `features/baby-mode/spec.md`, `foundations/audio-engine/spec.md`, `contracts/design-tokens.md`, `contracts/data-models.md` |
-| [ ] | **Epic 10** | Progress Tracking | Epic 3, Epic 4 | `features/progress-tracking/spec.md`, `contracts/data-models.md` |
+| [ ] | **Epic 4** | Onboarding Flow | Epic 2, Epic 3 | `features/onboarding/spec.md`, `contracts/data-models.md`, `contracts/design-tokens.md` |
+| [ ] | **Epic 5** | Core Player | Epic 1, Epic 3 | `features/core-player/spec.md`, `foundations/audio-engine/spec.md`, `contracts/design-tokens.md` |
+| [ ] | **Epic 6** | Feel Lessons (3:2) | Epic 1, Epic 5 | `features/feel-lessons/spec.md`, `foundations/audio-engine/spec.md`, `contracts/data-models.md` |
+| [ ] | **Epic 7** | Disappearing Beat Mode | Epic 1, Epic 5 | `features/disappearing-beat/spec.md`, `foundations/audio-engine/spec.md` |
+| [ ] | **Epic 8** | Baby Mode | Epic 1, Epic 2, Epic 3 | `features/baby-mode/spec.md`, `foundations/audio-engine/spec.md`, `contracts/design-tokens.md`, `contracts/data-models.md` |
+| [ ] | **Epic 9** | Progress Tracking | Epic 2, Epic 3 | `features/progress-tracking/spec.md`, `contracts/data-models.md` |
 
 ### Phase 2: Integration & Polish
 
 | Status | Epic | Name | Dependencies | Read Before Starting |
 |--------|------|------|--------------|----------------------|
-| [ ] | **Epic 11** | End-to-End Integration | Epics 5-10 | All feature specs, `contracts/api-contracts.md`, `contracts/data-models.md` |
-| [ ] | **Epic 12** | Testing & QA | Epic 11 | All specs (full regression scope) |
+| [ ] | **Epic 10** | End-to-End Integration | Epics 4-9 | All feature specs, `contracts/api-contracts.md`, `contracts/data-models.md` |
+| [ ] | **Epic 11** | Testing & QA | Epic 10 | All specs (full regression scope) |
+
+---
+
+## Cross-Cutting: Content Creation
+
+These content tasks must be completed before their dependent epics:
+- Audio assets (click.wav, clave.wav, woodblock.wav, soft-chime.wav, soft-bell.wav) → blocks Epic 1
+- 3:2 lesson content (7 steps with cultural context, mnemonics, instructions) → blocks Epic 6
+- Baby activity card content (curated activities per stage) → blocks Epic 8
+- Placeholder lesson structures for 4:3 and 2:3 → blocks Epic 6
+
+---
+
+## Cross-Cutting: Deployment & CI
+
+Not a separate epic, but must be addressed:
+- CI pipeline: lint + typecheck + test (part of Epic 0)
+- EAS Build configuration (before first device testing)
+- App store setup: bundle IDs, provisioning (before Epic 11)
+- Environment configuration: dev vs staging
 
 ---
 
 ## Epic Details
 
-### Epic 1: Project Scaffolding
+### Epic 0: Developer Infrastructure
 
-**Goal:** Initialize the Expo project, configure tooling, establish folder structure, and set up the development environment so all subsequent epics have a clean starting point.
+**Goal:** Scaffold the GrooveCore Expo project with all engineering guardrails (TypeScript strict, ESLint, Jest, path aliases, design system, i18n, error handling, test utilities) so every subsequent epic inherits production-grade infrastructure. This epic absorbs all of the former "Epic 1: Project Scaffolding" scope.
 
 **Scope:**
 - `npx create-expo-app` with TypeScript template
-- Install core dependencies: zustand, expo-av, expo-router, react-native-reanimated, react-native-skia
-- Configure path aliases (`@/` pointing to `src/`)
+- Install core dependencies: zustand, expo-router, react-native-reanimated
+- Configure path aliases (`@features`, `@libs`, etc.)
 - Set up ESLint + Prettier with project conventions
 - Create folder skeleton per `coding-conventions.md`
 - Configure Jest + React Native Testing Library
 - Verify app builds and runs on iOS simulator and Android emulator
-- Set up Supabase project (empty, just connection config)
+- Design system tokens (colors, typography, spacing)
+- Essential design system components (Button, IconButton, typography components)
+- i18n setup, error handling, test utilities
+- CI pipeline (lint + typecheck + test)
 
 **Read:**
 - `contracts/coding-conventions.md`
+- [Epic 0 Plan](../docs/superpowers/plans/2026-03-13-epic-0-developer-infrastructure.md)
 
-**Outputs:** A runnable Expo app with correct folder structure, all dependencies installed, linting passing, and one placeholder screen.
+**Outputs:** A runnable Expo app with correct folder structure, all dependencies installed, linting passing, design tokens implemented, essential components built, and one placeholder screen.
 
 ---
 
-### Epic 2: Audio Engine
+### Epic 1: Audio Engine
 
 **Goal:** Build the polyrhythm scheduling engine, sound loader, stereo split, per-layer volume control, tempo engine, and transport controls. This is the rhythmic heart of the app.
 
@@ -95,7 +144,7 @@ This is the single source of truth for build order. Before starting any work:
 
 ---
 
-### Epic 3: Data Layer
+### Epic 2: Data Layer
 
 **Goal:** Establish all Zustand stores, Supabase integration, offline-first persistence, and session recording lifecycle.
 
@@ -118,7 +167,7 @@ This is the single source of truth for build order. Before starting any work:
 
 ---
 
-### Epic 4: Navigation Shell
+### Epic 3: Navigation Shell
 
 **Goal:** Set up Expo Router with 5-tab layout, screen registry, and modal/sheet patterns.
 
@@ -131,16 +180,23 @@ This is the single source of truth for build order. Before starting any work:
 - Screen-awake behavior for practice screens
 - Deep linking structure (placeholder routes)
 - Skeleton screens for each tab (placeholder content)
+- Settings tab: basic Settings screen with:
+  - Sound preferences (default sound selection)
+  - Default BPM
+  - Stereo split default
+  - Play in background toggle
+  - Baby profile management (link to baby profile edit)
+  - About/version info
 
 **Read:**
 - `foundations/navigation-shell/spec.md`
 - `contracts/design-tokens.md`
 
-**Outputs:** Navigable 5-tab app shell with placeholder screens, correct routing, and modal support.
+**Outputs:** Navigable 5-tab app shell with placeholder screens, correct routing, modal support, and basic Settings screen.
 
 ---
 
-### Epic 5: Onboarding Flow
+### Epic 4: Onboarding Flow
 
 **Goal:** Build the 4-screen first-launch onboarding that collects user profile data and configures the app experience.
 
@@ -163,7 +219,7 @@ This is the single source of truth for build order. Before starting any work:
 
 ---
 
-### Epic 6: Core Player
+### Epic 5: Core Player
 
 **Goal:** Build the main polyrhythm player screen with all controls and the radial visualizer.
 
@@ -188,7 +244,7 @@ This is the single source of truth for build order. Before starting any work:
 
 ---
 
-### Epic 7: Feel Lessons (3:2)
+### Epic 6: Feel Lessons (3:2)
 
 **Goal:** Build the step-based lesson engine and the complete 3:2 feel internalization lesson.
 
@@ -216,7 +272,7 @@ This is the single source of truth for build order. Before starting any work:
 
 ---
 
-### Epic 8: Disappearing Beat Mode
+### Epic 7: Disappearing Beat Mode
 
 **Goal:** Build the staged muting engine that trains internal pulse.
 
@@ -240,7 +296,7 @@ This is the single source of truth for build order. Before starting any work:
 
 ---
 
-### Epic 9: Baby Mode
+### Epic 8: Baby Mode
 
 **Goal:** Build the parent-child rhythm experience with age-stage system, activity cards, duet tap, visualizer, and session logging.
 
@@ -266,9 +322,16 @@ This is the single source of truth for build order. Before starting any work:
 
 **Outputs:** Complete baby mode tab with stage-appropriate activities, duet tap, visualizer, and session logging.
 
+### Scope Note: Baby Mode (Epic 8)
+
+Baby Mode represents ~30-40% of MVP engineering effort for a secondary audience.
+Consider: could ship MVP without Baby Mode (Epics 0-7, 9-11) and add Baby Mode
+as a fast-follow release. This would significantly reduce MVP timeline risk.
+Decision: [TO BE DECIDED -- product strategy question]
+
 ---
 
-### Epic 10: Progress Tracking
+### Epic 9: Progress Tracking
 
 **Goal:** Build the feel status dashboard, self-report prompt, session history, and weekly overview.
 
@@ -288,7 +351,7 @@ This is the single source of truth for build order. Before starting any work:
 
 ---
 
-### Epic 11: End-to-End Integration
+### Epic 10: End-to-End Integration
 
 **Goal:** Wire all features together, verify cross-feature flows, fix integration gaps.
 
@@ -311,7 +374,7 @@ This is the single source of truth for build order. Before starting any work:
 
 ---
 
-### Epic 12: Testing & QA
+### Epic 11: Testing & QA
 
 **Goal:** Full test coverage, manual QA, and release preparation.
 
@@ -342,54 +405,54 @@ The following diagram shows which epics can run simultaneously. Epics on the sam
 Timeline    Work
 --------    ----
 
-  T0        [ Epic 1: Project Scaffolding ]
+  T0        [ Epic 0: Developer Infrastructure ]
              |
-  T1        [ Epic 2: Audio ]    [ Epic 3: Data ]    [ Epic 4: Nav ]
+  T1        [ Epic 1: Audio ]    [ Epic 2: Data ]    [ Epic 3: Nav ]
              |                    |         |          |
              |                    |         |          |
-  T2        [ Epic 6: Player ]   [ Epic 5: Onboard ]  [ Epic 9: Baby ]   [ Epic 10: Progress ]
-             |         |                               (needs 2+3+4)
-  T3        [ Epic 7 ] [ Epic 8 ]
+  T2        [ Epic 5: Player ]   [ Epic 4: Onboard ]  [ Epic 8: Baby ]   [ Epic 9: Progress ]
+             |         |                               (needs 1+2+3)
+  T3        [ Epic 6 ] [ Epic 7 ]
              |          |
              v          v
-  T4        [       Epic 11: Integration        ]
+  T4        [       Epic 10: Integration        ]
              |
-  T5        [       Epic 12: Testing & QA       ]
+  T5        [       Epic 11: Testing & QA       ]
 ```
 
 ### Parallel Execution Windows
 
 ```
-Window 1 (T0):  Epic 1 alone — everything depends on it
+Window 1 (T0):  Epic 0 alone — everything depends on it
                 +-----------+
-                |  Epic 1   |
+                |  Epic 0   |
                 +-----------+
 
-Window 2 (T1):  Epics 2, 3, 4 — all depend only on Epic 1, fully parallel
+Window 2 (T1):  Epics 1, 2, 3 — all depend only on Epic 0, fully parallel
                 +-----------+  +-----------+  +-----------+
-                |  Epic 2   |  |  Epic 3   |  |  Epic 4   |
+                |  Epic 1   |  |  Epic 2   |  |  Epic 3   |
                 +-----------+  +-----------+  +-----------+
 
-Window 3 (T2):  Epics 5, 6, 9, 10 — once their deps complete
+Window 3 (T2):  Epics 4, 5, 8, 9 — once their deps complete
                 +-----------+  +-----------+  +-----------+  +-----------+
-                |  Epic 5   |  |  Epic 6   |  |  Epic 9   |  |  Epic 10  |
+                |  Epic 4   |  |  Epic 5   |  |  Epic 8   |  |  Epic 9   |
                 +-----------+  +-----------+  +-----------+  +-----------+
-                (needs 3+4)    (needs 2+4)    (needs 2+3+4)  (needs 3+4)
+                (needs 2+3)    (needs 1+3)    (needs 1+2+3)  (needs 2+3)
 
-Window 4 (T3):  Epics 7, 8 — both need Epic 6 complete
+Window 4 (T3):  Epics 6, 7 — both need Epic 5 complete
                 +-----------+  +-----------+
-                |  Epic 7   |  |  Epic 8   |
+                |  Epic 6   |  |  Epic 7   |
                 +-----------+  +-----------+
-                (needs 2+6)    (needs 2+6)
+                (needs 1+5)    (needs 1+5)
 
-Window 5 (T4):  Epic 11 — all features must be done
+Window 5 (T4):  Epic 10 — all features must be done
+                +-------------------------------+
+                |        Epic 10                |
+                +-------------------------------+
+
+Window 6 (T5):  Epic 11 — integration must be done
                 +-------------------------------+
                 |        Epic 11                |
-                +-------------------------------+
-
-Window 6 (T5):  Epic 12 — integration must be done
-                +-------------------------------+
-                |        Epic 12                |
                 +-------------------------------+
 ```
 
@@ -397,15 +460,24 @@ Window 6 (T5):  Epic 12 — integration must be done
 
 | Window | Epics | Max Parallel Agents |
 |--------|-------|---------------------|
-| T0 | 1 | 1 |
-| T1 | 2, 3, 4 | 3 |
-| T2 | 5, 6, 9, 10 | 4 |
-| T3 | 7, 8 | 2 |
-| T4 | 11 | 1 |
-| T5 | 12 | 1 |
+| T0 | 0 | 1 |
+| T1 | 1, 2, 3 | 3 |
+| T2 | 4, 5, 8, 9 | 4 |
+| T3 | 6, 7 | 2 |
+| T4 | 10 | 1 |
+| T5 | 11 | 1 |
 
 **Theoretical minimum wall-clock time:** 6 serial windows, regardless of agent count.
 **Maximum useful agents at peak:** 4 (during Window T2).
+
+### Timeline Reality Check
+
+Original estimate: 8 weeks (PRD Phase 1).
+With 12 epics (now 0-11), 6 serial dependency windows, content creation overhead,
+and the audio latency spike prerequisite, realistic estimate is 10-14 weeks
+for a single developer with AI agent assistance.
+
+Critical path: Epic 0 → Epic 1 (audio spike must pass) → Epics 2+3 (parallel) → Features
 
 ---
 
@@ -415,15 +487,15 @@ When marking an epic complete, update the checkbox above and add a completion no
 
 | Epic | Completed Date | Agent/Session | Notes |
 |------|---------------|---------------|-------|
-| 1 | — | — | — |
-| 2 | — | — | — |
-| 3 | — | — | — |
-| 4 | — | — | — |
-| 5 | — | — | — |
-| 6 | — | — | — |
-| 7 | — | — | — |
-| 8 | — | — | — |
-| 9 | — | — | — |
-| 10 | — | — | — |
-| 11 | — | — | — |
-| 12 | — | — | — |
+| 0 | -- | -- | -- |
+| 1 | -- | -- | -- |
+| 2 | -- | -- | -- |
+| 3 | -- | -- | -- |
+| 4 | -- | -- | -- |
+| 5 | -- | -- | -- |
+| 6 | -- | -- | -- |
+| 7 | -- | -- | -- |
+| 8 | -- | -- | -- |
+| 9 | -- | -- | -- |
+| 10 | -- | -- | -- |
+| 11 | -- | -- | -- |

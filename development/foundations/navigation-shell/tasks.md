@@ -76,6 +76,8 @@
 - [ ] Use `react-native-reanimated` for the color transition (200ms duration, ease-in-out).
 - [ ] Also apply the baby mode palette to the Baby stack's header background and tint colors.
 
+**Note:** Baby mode palette switching likely requires a custom tab bar component, since Expo Router's `Tabs` `tabBarStyle` is a static StyleSheet. Add 1-2 days to the tab bar task estimate for this complexity.
+
 **Acceptance Criteria:**
 - Tapping the Baby tab causes a smooth 200ms color transition on the tab bar — no flash or jump.
 - Switching from Baby to any other tab smoothly transitions back to the default palette.
@@ -109,12 +111,17 @@
   4. Slot or Stack for rendering child routes
 - [ ] Load custom fonts using `expo-font` and `useFonts()` hook.
 - [ ] Call `SplashScreen.preventAutoHideAsync()` at module level.
-- [ ] In a `useEffect`, once fonts are loaded, call `SplashScreen.hideAsync()`.
-- [ ] Add a loading gate: if fonts are not yet loaded, return `null` (splash screen remains visible).
+- [ ] In a `useEffect`, once ALL readiness conditions are met, call `SplashScreen.hideAsync()`.
+  Splash screen does NOT dismiss until all three conditions are met:
+  - Fonts loaded
+  - Sounds preloaded
+  - ALL persisted Zustand stores rehydrated (use `onRehydrateStorage` callbacks to signal readiness via `useAppReadyStore`)
+- [ ] Add a loading gate: if not all ready, return `null` (splash screen remains visible).
 
 **Acceptance Criteria:**
 - App launches with the splash screen visible, transitions smoothly to the first screen once loaded.
 - No flash of unstyled content between splash and first screen.
+- No flash of onboarding screen for returning users (stores are rehydrated before splash dismisses).
 - All providers are available to descendant screens (gestures, safe area, bottom sheets all work).
 - Font loading failure is handled gracefully (falls back to system font, still hides splash screen).
 
@@ -165,7 +172,7 @@
 
 - [ ] Install `expo-keep-awake` if not already present.
 - [ ] Create `src/hooks/useKeepAwakeWhilePlaying.ts`:
-  - Uses `useKeepAwake()` from `expo-keep-awake` conditionally based on `audioStore.isPlaying`.
+  - Uses imperative API (`activateKeepAwakeAsync` / `deactivateKeepAwake`) inside a `useEffect`, NOT the `useKeepAwake()` hook form (which violates React rules of hooks when called conditionally).
   - When `isPlaying` transitions to `false`, deactivates keep-awake.
 - [ ] Create `src/hooks/useKeepAwakeAlways.ts`:
   - Simple wrapper that always calls `useKeepAwake()` — for screens that should never sleep (visualizer, duet tap).
@@ -219,3 +226,32 @@
 - No "screen not found" or "navigator not configured" warnings.
 - Tab bar remains visible on all tab screens and disappears during full-screen modals.
 - Performance: tab switching is instant (< 100ms perceived), no visible lag or flash.
+
+---
+
+## Task 12: ThemeProvider
+
+- [ ] Create ThemeContext with default (dark) and baby (warm) token sets
+- [ ] Implement ThemeProvider component with animated token switching (200ms interpolation)
+- [ ] Export `useTheme()` hook for consuming tokens
+- [ ] Integrate into root layout provider stack (outermost position)
+- [ ] Baby tokens are a separate static const, not computed
+
+**Acceptance Criteria:**
+- Components can read tokens via `useTheme()`.
+- Baby tab switches palette with animated transition.
+- Non-baby tabs use default dark theme tokens.
+
+---
+
+## Task 13: Error Boundaries
+
+- [ ] Create `TabErrorFallback` component showing: app icon, "Something went wrong in [Tab Name]", "Try Again" button (resets error boundary), "Go Home" link (navigates to Learn tab)
+- [ ] Wrap each tab in an ErrorBoundary in the tab layout
+- [ ] Add root-level ErrorBoundary in `app/_layout.tsx` for fatal errors
+
+**Acceptance Criteria:**
+- Throwing an error in a tab shows the fallback UI instead of crashing.
+- "Try Again" resets the error boundary and re-renders the tab.
+- Other tabs remain unaffected when one tab errors.
+- Root-level ErrorBoundary catches errors outside of tab boundaries.

@@ -1,4 +1,6 @@
-# Epic 3: Data Layer -- Implementation Plan
+# Epic 2: Data Layer -- Implementation Plan
+
+> **Epic numbering updated 2026-03-13.** This was formerly Epic 3. Now Epic 2 per unified numbering scheme.
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -1690,7 +1692,7 @@ Expected: 0 errors, 0 warnings
 ## Dependency Chain
 
 ```
-Chunk 1 (Infrastructure) -- no deps beyond Epic 0
+Chunk 1 (Infrastructure) -- no deps beyond Epic 0 (Developer Infrastructure)
   |
   v
 Chunk 2 (Stores) -- needs persist helper
@@ -1707,3 +1709,17 @@ Chunk 5 (Sync) -- needs Chunks 2 + 4 (stores + supabase)
   v
 Chunk 6 (Verify) -- needs all above
 ```
+
+> **Type Source:** All types MUST match `development/contracts/data-models.md`.
+> If types in this plan differ from data-models.md, data-models.md is authoritative.
+> Update this plan to match, not the other way around.
+
+---
+
+## Done Criteria
+- [ ] All Zustand stores hydrate from AsyncStorage on app launch
+- [ ] Session data persists across app restarts
+- [ ] Supabase anonymous auth works (or is cleanly stubbed if deferred)
+- [ ] Sync queue processes items with exponential backoff
+- [ ] Dead-letter queue captures failed syncs (not dropped)
+- [ ] Settings store defaults match design-tokens.md values

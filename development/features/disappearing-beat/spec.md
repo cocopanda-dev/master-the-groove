@@ -46,6 +46,23 @@ The mode progresses through a fixed sequence of stages. All stage transitions ha
 | Stage 3 | 0% | 0% | Both layers mute. User holds BOTH layers internally — pure internal pulse. |
 | Return | 100% | 100% | Both layers snap back to full volume at beat 1 of the next cycle. Plays for the configured number of return cycles. |
 
+### Stage 0 (Warm-up) Duration
+
+Minimum warm-up duration: 8 seconds of wall-clock time, regardless of `barsPerStage` setting.
+If `barsPerStage * cycleDurationMs < 8000ms`, extend Stage 0 to `ceil(8000 / cycleDurationMs)` bars.
+This ensures the user has enough time to lock in before removal begins.
+
+### Stage 3 Duration Warning
+
+On the configuration screen, show estimated Stage 3 wall-clock duration:
+`estimatedDuration = barsPerStage * cycleDurationMs / 1000` seconds.
+
+If estimated duration > 60 seconds, show warning:
+"Stage 3 will last ~{X} minutes at this tempo. Consider using fewer bars."
+
+Maximum recommended: 90 seconds of silence. No hard cap (user controls experience),
+but the warning helps prevent frustration.
+
 ### Stage Timing
 - Each stage lasts the configured number of **bars** (not cycles). For 3:2 at one bar = one combined cycle, bars and cycles are equivalent.
 - Fade transitions happen over the first 2 bars of each fade stage (Stage 1 and Stage 2). The remaining bars of that stage play at the target volume.
@@ -72,12 +89,44 @@ The mode progresses through a fixed sequence of stages. All stage transitions ha
 - Multiple taps allowed (user taps on each perceived beat 1)
 - The audio scheduler continues running silently, tracking where beat 1 actually falls
 
-### On Return
-When layers snap back at the return phase:
-- Compare the user's **last tap timestamp before the return** to the actual beat 1 timestamp
-- Calculate drift: `userTap - actualBeat1` in milliseconds
-  - Negative = early
-  - Positive = late
+## Drift Measurement (Revised)
+
+Track drift for EVERY expected beat 1 throughout Stage 3, not just the last tap.
+
+For each expected beat 1 in Stage 3:
+1. Find the user's nearest tap (within +/-50% of the beat interval)
+2. Calculate drift: `tapTimestamp - expectedBeat1Timestamp` (negative = early, positive = late)
+3. Store in array: `driftHistory: Array<{ expectedTime: number, tapTime: number | null, driftMs: number | null }>`
+4. `null` tapTime means the user missed that beat 1 entirely
+
+On return (Stage 3 -> Return):
+- Show drift trajectory visualization (dots per cycle, colored by drift zone)
+- Show summary: "You stayed within Xms on average" or "Drift increased over time"
+- Final drift is the LAST cycle's drift (for the session record)
+- All drift data is available for the summary screen
+
+## Timing Precision
+
+Use `nativeEvent.timestamp` from touch events (closest to hardware timing), NOT `Date.now()`.
+
+Fallback chain:
+1. `nativeEvent.timestamp` (preferred -- hardware-level timing)
+2. `performance.now()` (high-resolution monotonic clock)
+3. `Date.now()` (last resort -- insufficient for 50ms threshold)
+
+When using `nativeEvent.timestamp`, note that it is relative to device boot time,
+not epoch time. Use it only for relative calculations (drift = tap - expected).
+
+### Drift Zones
+- "Locked in": |drift| <= 50ms (green -- `driftLockedIn` token)
+- "Close": |drift| 51-120ms (amber -- `driftClose` token)
+- "Drifting": |drift| > 120ms (warm orange -- `driftDrifting` token, NOT error red)
+
+Note: These thresholds assume `nativeEvent.timestamp` precision. If falling back to
+Date.now(), widen all thresholds by 20ms to account for JS timing uncertainty.
+
+Colors reference `design-tokens.md` drift feedback tokens. Intentionally avoid
+error-red to maintain non-judgmental feel.
 
 ### Drift Display
 - **Arrow indicator** showing drift direction:
@@ -85,12 +134,15 @@ When layers snap back at the return phase:
   - Right arrow = late
   - Center dot = locked in
 - **Magnitude text** (e.g., "-45ms" or "+120ms")
-- **Zone classification:**
-  - **"Locked in"** (within 50ms): green color, celebratory micro-animation
-  - **"Close"** (50–150ms): yellow/amber color, encouraging text
-  - **"Drifting"** (>150ms): orange color, neutral text (no judgment — purely informational)
+- **Zone classification** uses the drift zones defined above
 - **No pass/fail** — the display is informational and encouraging regardless of result
 - Drift display persists on the results screen after the mode ends
+
+### Return Alignment
+The return to full audio always happens on the scheduler's beat 1.
+If the user's internal beat 1 has drifted, the return may feel "off" --
+this IS the pedagogical feedback. The drift visualization helps the user
+understand how far they drifted.
 
 ---
 
@@ -148,21 +200,19 @@ Displayed after the return phase completes:
 - `audioStore` — playback control, layer volumes, fade functions, cycle-boundary events, beat timing data
 
 ### Written
-- `sessionStore` — logs a disappearing beat session:
-  ```
-  {
-    type: 'disappearing-beat',
-    polyrhythmId: string,
-    bpm: number,
-    disappearingLayer: 'A' | 'B',
-    barsPerStage: number,
-    returnCycles: number,
-    driftMs: number | null,       // null if user didn't tap
-    driftZone: 'locked' | 'close' | 'drifting' | null,
-    duration: number,             // seconds
-    timestamp: string
-  }
-  ```
+
+## Session Recording
+
+Uses the canonical `Session` type from `data-models.md` with these fields populated:
+- `mode: 'disappearing-beat'`
+- `disappearingBeatStageReached: 0 | 1 | 2 | 3` (highest stage completed)
+- `disappearingBeatDriftMs: number` (final cycle drift in ms)
+- `disappearingBeatDriftZone: 'locked-in' | 'close' | 'drifting'`
+- `disappearingBeatLayer: 'A' | 'B'` (which layer was removed)
+- `disappearingBeatBarsPerStage: number`
+
+All fields are defined on the canonical Session type. Do NOT create a separate
+DisappearingBeatResult type -- extend Session directly.
 
 ---
 

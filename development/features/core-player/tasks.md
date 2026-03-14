@@ -45,16 +45,24 @@ Priority: P0 (MVP)
   - Draw the base circle (thin stroke, neutral color)
   - **AC:** A circle renders centered in the visualizer area at the correct size.
 
-- [ ] **Task 3.2: Draw beat dots on the circle**
-  - Calculate dot positions: for Layer A, place `ratioA` dots evenly spaced around the circle; same for Layer B with `ratioB` dots
-  - Beat 1 (position 0, 12 o'clock) is shared — render it larger (1.5x radius) with accent color
-  - Layer A dots use `tokens.color.layerA`; Layer B dots use `tokens.color.layerB`
-  - Dots should recalculate positions when ratio changes
-  - **AC:** For 3:2, 3 Layer-A dots and 2 Layer-B dots render at correct angular positions. Beat 1 dot is visually distinct.
+- [ ] **Task 3.2a: Position calculation utility**
+  - Compute angular positions from LCM-based beat counts
+  - For Layer A, place `ratioA` dots evenly spaced around the circle; same for Layer B with `ratioB` dots
+  - Positions should recalculate when ratio changes
+  - **AC:** Utility returns correct angular positions for any ratio combination.
+
+- [ ] **Task 3.2b: Skia dot rendering**
+  - Draw dots at calculated positions with `tokens.color.layerA` / `tokens.color.layerB` colors
+  - **AC:** For 3:2, 3 Layer-A dots and 2 Layer-B dots render at correct angular positions.
+
+- [ ] **Task 3.2c: Beat 1 accent styling**
+  - Beat 1 (position 0, 12 o'clock) is shared — render it larger (1.5x radius) with `tokens.color.beatOne` color
+  - Pulse animation on beat 1
+  - **AC:** Beat 1 dot is visually distinct: larger size, beatOne color, pulses on beat 1 fire.
 
 - [ ] **Task 3.3: Implement beat pulse animation**
   - Use `react-native-reanimated` shared values to drive dot scale
-  - When `currentBeatA` or `currentBeatB` changes, the corresponding dot scales to 1.3x over 80ms (ease-out) then returns to 1.0x over 120ms
+  - When `currentBeatA` or `currentBeatB` changes, the corresponding dot scales to 1.3x over 80ms then returns to 1.0x over 70ms (ease-out). Total: 150ms (matching `beatPulseDuration` token)
   - Cancel any in-progress animation on that dot before starting a new one (handles fast BPM)
   - **AC:** Dots visibly pulse when their beat fires. At 160 BPM, animations do not stack or cause jank.
 
@@ -188,6 +196,68 @@ Priority: P0 (MVP)
   - Visualizer canvas has a descriptive label (e.g., "Radial visualizer showing 3 over 2 polyrhythm")
   - Minimum tap target: 44px for all buttons
   - **AC:** Full VoiceOver/TalkBack pass — all controls are reachable and meaningfully labeled.
+
+---
+
+## 12. Session Recording
+
+- [ ] **Task 12.1: Start Session on play()**
+  - Create Session record with `startedAt`, `bpmStart`, `polyrhythmId`, `mode: 'free-play'`
+  - **AC:** Calling play() creates a new Session record with correct initial fields.
+
+- [ ] **Task 12.2: End Session on stop()/exit**
+  - Set `endedAt`, `bpmEnd`, calculate `duration`
+  - **AC:** Stopping playback or exiting the screen finalizes the Session with correct end fields.
+
+- [ ] **Task 12.3: Feel-state prompt**
+  - Show after sessions >= 30s with 3 options ('executing' | 'hearing' | 'feeling') + dismiss
+  - **AC:** Prompt appears for 30s+ sessions; selecting an option stores it; dismissing sets `feelStateAfter: null`.
+
+- [ ] **Task 12.4: Write Session to sessionStore**
+  - Integrate with canonical Session type from `data-models.md`
+  - Call `sessionStore.addSession()` with completed Session
+  - **AC:** Completed sessions are persisted in sessionStore and retrievable.
+
+- [ ] **Task 12.5: Discard sessions < 10s**
+  - Sessions shorter than 10 seconds are not written to the store
+  - **AC:** Rapid play/stop cycles do not create Session records.
+
+---
+
+## 13. Integration Tests
+
+- [ ] **Task 13.1: Test audio-to-visual sync**
+  - Beat pulse fires within tolerance of audio event
+  - **AC:** Visual beat pulse timing matches audio scheduling within acceptable latency.
+
+- [ ] **Task 13.2: Test session recording lifecycle**
+  - Play -> stop -> session appears in store
+  - **AC:** Full play/stop cycle creates a Session record with correct fields.
+
+- [ ] **Task 13.3: Test ratio change during playback**
+  - Audio restarts, session continues
+  - **AC:** Changing ratio while playing stops audio, resets visualizer; existing session is finalized.
+
+- [ ] **Task 13.4: Test feel-state prompt flow**
+  - Appears for 30s+ sessions, records selection, handles dismissal
+  - **AC:** Prompt flow works end-to-end including persistence.
+
+---
+
+## 14. Coming Soon Pills
+
+- [ ] **Task 14.1: Render non-MVP ratios as grayed-out, non-selectable pills**
+  - Show "Coming Soon" label on pill
+  - Tap shows tooltip: "This ratio is coming in a future update."
+  - **AC:** Non-MVP ratios are visible but not selectable; tooltip appears on tap.
+
+---
+
+## Prerequisites
+
+- Audio engine foundation (`audio-engine/tasks.md`) must be COMPLETE before Tasks 3.x (visualizer/audio sync)
+- Data layer foundation (`data-layer/tasks.md`) must be COMPLETE before Tasks 12.x (session recording)
+- For UI-only tasks (1.x, 2.x), use a mock `audioStore` that returns static values
 
 ---
 
