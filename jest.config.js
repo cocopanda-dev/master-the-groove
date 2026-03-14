@@ -3,7 +3,7 @@ const config = {
   preset: 'jest-expo',
   setupFilesAfterEnv: ['./src/__tests__/jest-setup.ts'],
   testMatch: ['**/?(*.)+(spec|test).{ts,tsx}'],
-  testPathIgnorePatterns: ['/node_modules/', '/src/__tests__/mocks/', '/src/__tests__/jest-'],
+  testPathIgnorePatterns: ['/node_modules/', '/src/__tests__/mocks/', '/src/__tests__/jest-', '\\.claude/worktrees/'],
   moduleNameMapper: {
     '^@features/(.*)$': '<rootDir>/src/features/$1',
     '^@data-access/(.*)$': '<rootDir>/src/data-access/$1',

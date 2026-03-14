@@ -6,6 +6,7 @@ import { colors } from '@design-system/tokens/colors';
 import { spacing } from '@design-system/tokens/spacing';
 import { borderRadius } from '@design-system/tokens/border-radius';
 import { fontSize } from '@design-system/tokens/typography';
+import { LAYER_COLORS } from '../constants';
 import type { LayerId } from '../types';
 
 type VolumeControlProps = {
@@ -14,11 +15,6 @@ type VolumeControlProps = {
   muted: boolean;
   onVolumeChange: (volume: number) => void;
   onMuteToggle: () => void;
-};
-
-const LAYER_COLORS: Record<LayerId, string> = {
-  A: colors.layerA,
-  B: colors.layerB,
 };
 
 export const VolumeControl = ({

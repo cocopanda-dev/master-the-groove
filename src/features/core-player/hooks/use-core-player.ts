@@ -3,27 +3,63 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAudioStore } from '@data-access/stores/use-audio-store';
 import { useSessionStore } from '@data-access/stores/use-session-store';
 import { useSettingsStore } from '@data-access/stores/use-settings-store';
+import { useShallow } from 'zustand/shallow';
 import { MVP_RATIOS, ACTIVE_RATIO_IDS, MIN_SESSION_DURATION_S, FEEL_STATE_PROMPT_THRESHOLD_S } from '../constants';
 import type { CorePlayerStatus, FeelStatePromptState } from '../types';
 import type { PolyrhythmRatio, FeelState } from '@types';
+
+const INITIAL_FEEL_STATE: FeelStatePromptState = { visible: false, sessionDuration: 0 };
 
 type UseCorePlayerReturn = {
   status: CorePlayerStatus;
   selectedRatio: PolyrhythmRatio;
   feelStatePrompt: FeelStatePromptState;
+  mutedA: boolean;
+  mutedB: boolean;
   onPlay: () => void;
   onPause: () => void;
   onStop: () => void;
   onSelectRatio: (ratio: PolyrhythmRatio) => void;
-  onDismissFeelState: () => void;
   onSubmitFeelState: (state: FeelState) => void;
   onSkipFeelState: () => void;
 };
 
 export const useCorePlayer = (): UseCorePlayerReturn => {
-  const audio = useAudioStore();
-  const session = useSessionStore();
-  const settings = useSettingsStore();
+  const audio = useAudioStore(
+    useShallow((s) => ({
+      isPlaying: s.isPlaying,
+      isPaused: s.isPaused,
+      bpm: s.bpm,
+      mutedA: s.mutedA,
+      mutedB: s.mutedB,
+      play: s.play,
+      pause: s.pause,
+      stop: s.stop,
+      setBpm: s.setBpm,
+      setSoundA: s.setSoundA,
+      setSoundB: s.setSoundB,
+      setMasterVolume: s.setMasterVolume,
+      setRatio: s.setRatio,
+    })),
+  );
+  const session = useSessionStore(
+    useShallow((s) => ({
+      lifecycleState: s.lifecycleState,
+      startSession: s.startSession,
+      endSession: s.endSession,
+      recordFeelState: s.recordFeelState,
+      skipFeelState: s.skipFeelState,
+      completeSession: s.completeSession,
+    })),
+  );
+  const settings = useSettingsStore(
+    useShallow((s) => ({
+      defaultBpm: s.defaultBpm,
+      preferredSoundA: s.preferredSoundA,
+      preferredSoundB: s.preferredSoundB,
+      masterVolume: s.masterVolume,
+    })),
+  );
 
   // Restore settings on mount
   const hasRestoredSettings = useRef(false);
@@ -41,10 +77,7 @@ export const useCorePlayer = (): UseCorePlayerReturn => {
     () => MVP_RATIOS[0] ?? { id: '3-2', ratioA: 3, ratioB: 2, name: '3:2', displayName: 'Three against Two', culturalOrigin: '', mnemonic: '' },
   );
 
-  const [feelStatePrompt, setFeelStatePrompt] = useState<FeelStatePromptState>({
-    visible: false,
-    sessionDuration: 0,
-  });
+  const [feelStatePrompt, setFeelStatePrompt] = useState<FeelStatePromptState>(INITIAL_FEEL_STATE);
 
   // Track when the session started for duration check before saving
   const sessionStartRef = useRef<number | null>(null);
@@ -118,17 +151,13 @@ export const useCorePlayer = (): UseCorePlayerReturn => {
     [audio, onStop],
   );
 
-  const onDismissFeelState = useCallback(() => {
-    setFeelStatePrompt({ visible: false, sessionDuration: 0 });
-  }, []);
-
   const onSubmitFeelState = useCallback(
     (state: FeelState) => {
       if (session.lifecycleState === 'pendingFeelState') {
         session.recordFeelState(state);
         session.completeSession();
       }
-      setFeelStatePrompt({ visible: false, sessionDuration: 0 });
+      setFeelStatePrompt(INITIAL_FEEL_STATE);
     },
     [session],
   );
@@ -138,18 +167,19 @@ export const useCorePlayer = (): UseCorePlayerReturn => {
       session.skipFeelState();
       session.completeSession();
     }
-    setFeelStatePrompt({ visible: false, sessionDuration: 0 });
+    setFeelStatePrompt(INITIAL_FEEL_STATE);
   }, [session]);
 
   return {
     status,
     selectedRatio,
     feelStatePrompt,
+    mutedA: audio.mutedA,
+    mutedB: audio.mutedB,
     onPlay,
     onPause,
     onStop,
     onSelectRatio,
-    onDismissFeelState,
     onSubmitFeelState,
     onSkipFeelState,
   };

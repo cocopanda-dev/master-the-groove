@@ -7,7 +7,7 @@ import { spacing } from '@design-system/tokens/spacing';
 import { borderRadius } from '@design-system/tokens/border-radius';
 import { fontSize } from '@design-system/tokens/typography';
 import type { BottomSheetContainerRef } from '@design-system';
-import { MVP_SOUND_OPTIONS } from '../constants';
+import { MVP_SOUND_OPTIONS, LAYER_COLORS } from '../constants';
 import type { LayerId } from '../types';
 import type { SoundId } from '@types';
 
@@ -15,11 +15,6 @@ type SoundSelectorProps = {
   layerId: LayerId;
   selectedSound: SoundId;
   onSoundChange: (sound: SoundId) => void;
-};
-
-const LAYER_COLORS: Record<LayerId, string> = {
-  A: colors.layerA,
-  B: colors.layerB,
 };
 
 export const SoundSelector = ({ layerId, selectedSound, onSoundChange }: SoundSelectorProps) => {

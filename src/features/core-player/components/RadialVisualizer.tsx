@@ -1,5 +1,5 @@
 // src/features/core-player/components/RadialVisualizer.tsx
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -66,14 +66,13 @@ const BeatDot = ({ x, y, size, color, isBeat1, beatScale }: DotProps) => {
           left: x - dotSize / 2,
           top: y - dotSize / 2,
         },
-        isBeat1 ? styles.beat1Dot : null,
       ]}
     />
   );
 };
 
 export const RadialVisualizer = ({ ratio, isPlaying }: RadialVisualizerProps) => {
-  const audio = useAudioStore();
+  const onBeat = useAudioStore((s) => s.onBeat);
 
   // One animated scale value per dot per layer
   const layerAScales = useRef<SharedValue<number>[]>([]);
@@ -98,8 +97,17 @@ export const RadialVisualizer = ({ ratio, isPlaying }: RadialVisualizerProps) =>
   const bScale6 = useSharedValue(1);
   const bScale7 = useSharedValue(1);
 
-  const allAScales: SharedValue<number>[] = [aScale0, aScale1, aScale2, aScale3, aScale4, aScale5, aScale6, aScale7];
-  const allBScales: SharedValue<number>[] = [bScale0, bScale1, bScale2, bScale3, bScale4, bScale5, bScale6, bScale7];
+  // useMemo with empty deps — shared values are stable refs
+  const allAScales = useMemo<SharedValue<number>[]>(
+    () => [aScale0, aScale1, aScale2, aScale3, aScale4, aScale5, aScale6, aScale7],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+  const allBScales = useMemo<SharedValue<number>[]>(
+    () => [bScale0, bScale1, bScale2, bScale3, bScale4, bScale5, bScale6, bScale7],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
   // Keep refs in sync so callback can use them without stale closure
   useEffect(() => {
@@ -124,7 +132,7 @@ export const RadialVisualizer = ({ ratio, isPlaying }: RadialVisualizerProps) =>
 
   useEffect(() => {
     if (!isPlaying) return;
-    const unsub = audio.onBeat((layer, beatIndex) => {
+    const unsub = onBeat((layer, beatIndex) => {
       if (layer === 'A') {
         pulseDot(layerAScales.current, beatIndex);
       } else {
@@ -132,7 +140,7 @@ export const RadialVisualizer = ({ ratio, isPlaying }: RadialVisualizerProps) =>
       }
     });
     return unsub;
-  }, [isPlaying, audio, pulseDot]);
+  }, [isPlaying, onBeat, pulseDot]);
 
   const ratioA = ratio.ratioA;
   const ratioB = ratio.ratioB;
@@ -198,9 +206,6 @@ const styles = StyleSheet.create({
   },
   dot: {
     position: 'absolute',
-  },
-  beat1Dot: {
-    // beat 1 is slightly larger — handled via size prop
   },
   centerDot: {
     position: 'absolute',

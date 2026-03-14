@@ -1,8 +1,14 @@
 // src/features/core-player/constants.ts
 import { MVP_RATIOS } from '@types';
-import type { MvpSoundOption } from './types';
+import { colors } from '@design-system/tokens/colors';
+import type { MvpSoundOption, LayerId } from './types';
 
 export { MVP_RATIOS };
+
+export const LAYER_COLORS: Record<LayerId, string> = {
+  A: colors.layerA,
+  B: colors.layerB,
+};
 
 /** Which ratios are currently playable vs coming-soon. */
 export const ACTIVE_RATIO_IDS: ReadonlySet<string> = new Set(['3-2', '4-3']);

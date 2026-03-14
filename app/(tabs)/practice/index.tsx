@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAudioStore } from '@data-access/stores/use-audio-store';
+import { useShallow } from 'zustand/shallow';
 import { colors } from '@design-system/tokens/colors';
 import { spacing } from '@design-system/tokens/spacing';
+import { borderRadius } from '@design-system/tokens/border-radius';
 import {
   RadialVisualizer,
   RatioSelector,
@@ -17,11 +19,32 @@ import {
 } from '@features/core-player';
 
 const PracticeScreen = () => {
-  const audio = useAudioStore();
+  const audio = useAudioStore(
+    useShallow((s) => ({
+      bpm: s.bpm,
+      soundA: s.soundA,
+      soundB: s.soundB,
+      volumeA: s.volumeA,
+      volumeB: s.volumeB,
+      stereoSplit: s.stereoSplit,
+      setBpm: s.setBpm,
+      tapTempo: s.tapTempo,
+      setSoundA: s.setSoundA,
+      setSoundB: s.setSoundB,
+      setVolumeA: s.setVolumeA,
+      setVolumeB: s.setVolumeB,
+      muteLayer: s.muteLayer,
+      unmuteLayer: s.unmuteLayer,
+      setStereoSplit: s.setStereoSplit,
+    })),
+  );
+
   const {
     status,
     selectedRatio,
     feelStatePrompt,
+    mutedA,
+    mutedB,
     onPlay,
     onPause,
     onStop,
@@ -30,6 +53,16 @@ const PracticeScreen = () => {
     onSkipFeelState,
   } = useCorePlayer();
 
+  const onMuteToggleA = useCallback(
+    () => (mutedA ? audio.unmuteLayer('A') : audio.muteLayer('A')),
+    [mutedA, audio],
+  );
+
+  const onMuteToggleB = useCallback(
+    () => (mutedB ? audio.unmuteLayer('B') : audio.muteLayer('B')),
+    [mutedB, audio],
+  );
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ScrollView
@@ -37,28 +70,20 @@ const PracticeScreen = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Visualizer */}
-        <View style={styles.section}>
-          <RadialVisualizer ratio={selectedRatio} isPlaying={status === 'playing'} />
-        </View>
+        <RadialVisualizer ratio={selectedRatio} isPlaying={status === 'playing'} />
 
-        {/* Transport */}
-        <View style={styles.section}>
-          <TransportControls
-            status={status}
-            onPlay={onPlay}
-            onPause={onPause}
-            onStop={onStop}
-          />
-        </View>
+        <TransportControls
+          status={status}
+          onPlay={onPlay}
+          onPause={onPause}
+          onStop={onStop}
+        />
 
-        {/* Ratio Selector */}
         <RatioSelector
           selectedRatioId={selectedRatio.id}
           onSelect={onSelectRatio}
         />
 
-        {/* BPM Control */}
         <View style={styles.sectionCard}>
           <BpmControl
             bpm={audio.bpm}
@@ -67,7 +92,6 @@ const PracticeScreen = () => {
           />
         </View>
 
-        {/* Sound Selectors */}
         <View style={styles.sectionCard}>
           <SoundSelector
             layerId="A"
@@ -82,30 +106,24 @@ const PracticeScreen = () => {
           />
         </View>
 
-        {/* Volume Controls */}
         <View style={styles.sectionCard}>
           <VolumeControl
             layerId="A"
             volume={audio.volumeA}
-            muted={audio.volumeA === 0}
+            muted={mutedA}
             onVolumeChange={audio.setVolumeA}
-            onMuteToggle={() =>
-              audio.volumeA === 0 ? audio.unmuteLayer('A') : audio.muteLayer('A')
-            }
+            onMuteToggle={onMuteToggleA}
           />
           <View style={styles.divider} />
           <VolumeControl
             layerId="B"
             volume={audio.volumeB}
-            muted={audio.volumeB === 0}
+            muted={mutedB}
             onVolumeChange={audio.setVolumeB}
-            onMuteToggle={() =>
-              audio.volumeB === 0 ? audio.unmuteLayer('B') : audio.muteLayer('B')
-            }
+            onMuteToggle={onMuteToggleB}
           />
         </View>
 
-        {/* Stereo Split */}
         <View style={styles.sectionCard}>
           <StereoSplitToggle
             enabled={audio.stereoSplit}
@@ -114,7 +132,6 @@ const PracticeScreen = () => {
         </View>
       </ScrollView>
 
-      {/* Feel State Prompt */}
       <FeelStatePrompt
         visible={feelStatePrompt.visible}
         sessionDuration={feelStatePrompt.sessionDuration}
@@ -136,16 +153,11 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: spacing['2xl'],
     gap: spacing.md,
-  },
-  section: {
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
   },
   sectionCard: {
-    marginHorizontal: spacing.md,
     backgroundColor: colors.surface,
-    borderRadius: 12,
+    borderRadius: borderRadius.lg,
     padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,

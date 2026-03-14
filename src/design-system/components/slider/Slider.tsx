@@ -1,5 +1,5 @@
 // src/design-system/components/slider/Slider.tsx
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, PanResponder, StyleSheet } from 'react-native';
 import { colors } from '../../tokens/colors';
 import type { SliderProps } from './types';
@@ -28,54 +28,46 @@ export const Slider = ({
   const trackWidth = useRef(0);
   const [isDragging, setIsDragging] = useState(false);
 
-  const clamp = useCallback(
-    (val: number) => Math.max(minimumValue, Math.min(maximumValue, val)),
-    [minimumValue, maximumValue],
-  );
+  // Store latest callbacks in refs so PanResponder always sees current values
+  const latestRef = useRef({ onValueChange, onSlidingComplete, disabled, minimumValue, maximumValue, step });
+  latestRef.current = { onValueChange, onSlidingComplete, disabled, minimumValue, maximumValue, step };
 
-  const snapToStep = useCallback(
-    (val: number): number => {
-      if (step <= 0) return val;
-      const steps = Math.round((val - minimumValue) / step);
-      return clamp(minimumValue + steps * step);
-    },
-    [step, minimumValue, clamp],
-  );
+  const valueFromX = useCallback((x: number): number => {
+    const { minimumValue: min, maximumValue: max, step: s } = latestRef.current;
+    const ratio = Math.max(0, Math.min(1, x / (trackWidth.current || 1)));
+    const raw = min + ratio * (max - min);
+    if (s <= 0) return raw;
+    const steps = Math.round((raw - min) / s);
+    return Math.max(min, Math.min(max, min + steps * s));
+  }, []);
 
-  const valueFromX = useCallback(
-    (x: number): number => {
-      const ratio = Math.max(0, Math.min(1, x / (trackWidth.current || 1)));
-      const raw = minimumValue + ratio * (maximumValue - minimumValue);
-      return snapToStep(raw);
-    },
-    [minimumValue, maximumValue, snapToStep],
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => !latestRef.current.disabled,
+        onMoveShouldSetPanResponder: () => !latestRef.current.disabled,
+        onPanResponderGrant: (evt) => {
+          setIsDragging(true);
+          const x = evt.nativeEvent.locationX;
+          latestRef.current.onValueChange(valueFromX(x));
+        },
+        onPanResponderMove: (evt) => {
+          const x = evt.nativeEvent.locationX;
+          latestRef.current.onValueChange(valueFromX(x));
+        },
+        onPanResponderRelease: (evt) => {
+          setIsDragging(false);
+          const x = evt.nativeEvent.locationX;
+          const finalValue = valueFromX(x);
+          latestRef.current.onValueChange(finalValue);
+          latestRef.current.onSlidingComplete?.(finalValue);
+        },
+        onPanResponderTerminate: () => {
+          setIsDragging(false);
+        },
+      }),
+    [valueFromX],
   );
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => !disabled,
-      onMoveShouldSetPanResponder: () => !disabled,
-      onPanResponderGrant: (evt) => {
-        setIsDragging(true);
-        const x = evt.nativeEvent.locationX;
-        onValueChange(valueFromX(x));
-      },
-      onPanResponderMove: (evt) => {
-        const x = evt.nativeEvent.locationX;
-        onValueChange(valueFromX(x));
-      },
-      onPanResponderRelease: (evt) => {
-        setIsDragging(false);
-        const x = evt.nativeEvent.locationX;
-        const finalValue = valueFromX(x);
-        onValueChange(finalValue);
-        onSlidingComplete?.(finalValue);
-      },
-      onPanResponderTerminate: () => {
-        setIsDragging(false);
-      },
-    }),
-  ).current;
 
   const ratio =
     maximumValue === minimumValue

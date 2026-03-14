@@ -21,6 +21,8 @@ type AudioState = {
   currentBeatA: number;
   currentBeatB: number;
   cycleCount: number;
+  mutedA: boolean;
+  mutedB: boolean;
 };
 
 type AudioActions = {
@@ -76,6 +78,8 @@ export const useAudioStore = create<AudioState & AudioActions>()((set, get) => (
   currentBeatA: 0,
   currentBeatB: 0,
   cycleCount: 0,
+  mutedA: false,
+  mutedB: false,
 
   play: () => {
     const state = get();
@@ -107,6 +111,8 @@ export const useAudioStore = create<AudioState & AudioActions>()((set, get) => (
       currentBeatA: 0,
       currentBeatB: 0,
       cycleCount: 0,
+      mutedA: false,
+      mutedB: false,
     });
   },
 
@@ -158,19 +164,23 @@ export const useAudioStore = create<AudioState & AudioActions>()((set, get) => (
   muteLayer: (layer) => {
     const vol = layer === 'A' ? get().volumeA : get().volumeB;
     muteManager.mute(layer, vol, (l, v) => applyLayerVolume(l, v, set));
+    set(layer === 'A' ? { mutedA: true } : { mutedB: true });
   },
 
   unmuteLayer: (layer) => {
     muteManager.unmute(layer, (l, v) => applyLayerVolume(l, v, set));
+    set(layer === 'A' ? { mutedA: false } : { mutedB: false });
   },
 
   muteAll: () => {
     const { volumeA, volumeB } = get();
     muteManager.muteAll(volumeA, volumeB, (l, v) => applyLayerVolume(l, v, set));
+    set({ mutedA: true, mutedB: true });
   },
 
   unmuteAll: () => {
     muteManager.unmuteAll((l, v) => applyLayerVolume(l, v, set));
+    set({ mutedA: false, mutedB: false });
   },
 
   fadeLayer: (layer, targetVolume, durationCycles) => {
