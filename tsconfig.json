@@ -1,6 +1,27 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "strict": true
-  }
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".",
+    "paths": {
+      "@features/*": ["src/features/*"],
+      "@data-access/*": ["src/data-access/*"],
+      "@libs/*": ["src/libs/*"],
+      "@operations/*": ["src/operations/*"],
+      "@design-system": ["src/design-system"],
+      "@design-system/*": ["src/design-system/*"],
+      "@types": ["src/types"],
+      "@types/*": ["src/types/*"],
+      "@entry-providers": ["src/entry-providers"],
+      "@entry-providers/*": ["src/entry-providers/*"],
+      "@assets/*": ["src/assets/*"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules"]
 }
