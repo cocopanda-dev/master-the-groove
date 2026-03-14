@@ -17,6 +17,9 @@ const config = {
     '^@entry-providers/(.*)$': '<rootDir>/src/entry-providers/$1',
     '^@assets/(.*)$': '<rootDir>/src/assets/$1',
   },
+  transformIgnorePatterns: [
+    'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|native-base|react-native-svg)',
+  ],
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',
