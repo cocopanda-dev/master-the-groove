@@ -32,7 +32,7 @@ describe('BottomSheetContainer', () => {
   });
 
   it('exposes ref with expand and close methods', () => {
-    const ref = React.createRef<{ expand: () => void; close: () => void }>();
+    const ref = React.createRef<{ expand: () => void; close: () => void; snapToIndex: (index: number) => void }>();
     render(
       <BottomSheetContainer ref={ref} snapPoints={['50%']}>
         <Text>Content</Text>

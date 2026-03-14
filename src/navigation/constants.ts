@@ -17,8 +17,8 @@ const TAB_CONFIG: TabConfig[] = [
   {
     name: 'practice',
     label: 'Practice',
-    iconActive: 'drum',
-    iconInactive: 'drum',
+    iconActive: 'metronome',
+    iconInactive: 'metronome',
   },
   {
     name: 'baby',

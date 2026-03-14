@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { activateKeepAwakeAsync, deactivateKeepAwakeAsync } from 'expo-keep-awake';
+import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useAudioStore } from '@data-access/stores/use-audio-store';
 
 interface KeepAwakeOptions {
@@ -30,11 +30,11 @@ const useKeepAwakeWhilePlaying = (options?: KeepAwakeOptions): void => {
     if (shouldKeepAwake) {
       activateKeepAwakeAsync(KEEP_AWAKE_TAG);
     } else {
-      deactivateKeepAwakeAsync(KEEP_AWAKE_TAG);
+      deactivateKeepAwake(KEEP_AWAKE_TAG);
     }
 
     return () => {
-      deactivateKeepAwakeAsync(KEEP_AWAKE_TAG);
+      deactivateKeepAwake(KEEP_AWAKE_TAG);
     };
   }, [shouldKeepAwake]);
 };

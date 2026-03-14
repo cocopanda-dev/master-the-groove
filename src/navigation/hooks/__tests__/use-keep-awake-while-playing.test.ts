@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import { useKeepAwakeWhilePlaying } from '../use-keep-awake-while-playing';
-import { activateKeepAwakeAsync, deactivateKeepAwakeAsync } from 'expo-keep-awake';
+import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 
 const mockAudioStore = {
   isPlaying: false,
@@ -25,7 +25,7 @@ describe('useKeepAwakeWhilePlaying', () => {
   it('deactivates keep-awake when isPlaying is false', () => {
     mockAudioStore.isPlaying = false;
     renderHook(() => useKeepAwakeWhilePlaying());
-    expect(deactivateKeepAwakeAsync).toHaveBeenCalled();
+    expect(deactivateKeepAwake).toHaveBeenCalled();
   });
 
   it('deactivates keep-awake on unmount', () => {
@@ -33,7 +33,7 @@ describe('useKeepAwakeWhilePlaying', () => {
     const { unmount } = renderHook(() => useKeepAwakeWhilePlaying());
     jest.clearAllMocks();
     unmount();
-    expect(deactivateKeepAwakeAsync).toHaveBeenCalled();
+    expect(deactivateKeepAwake).toHaveBeenCalled();
   });
 });
 
@@ -53,6 +53,6 @@ describe('useKeepAwakeWhilePlaying with always option', () => {
     const { unmount } = renderHook(() => useKeepAwakeWhilePlaying({ always: true }));
     jest.clearAllMocks();
     unmount();
-    expect(deactivateKeepAwakeAsync).toHaveBeenCalled();
+    expect(deactivateKeepAwake).toHaveBeenCalled();
   });
 });

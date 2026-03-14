@@ -57,7 +57,7 @@ const TabLayout = () => {
           title: 'Practice',
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons
-              name="drum"
+              name="metronome"
               size={24}
               color={color}
             />

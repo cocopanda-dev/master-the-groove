@@ -34,8 +34,8 @@ describe('TAB_CONFIG', () => {
 
   it('Practice tab has correct icon names', () => {
     const practiceTab = TAB_CONFIG.find((tab) => tab.name === 'practice');
-    expect(practiceTab?.iconActive).toBe('drum');
-    expect(practiceTab?.iconInactive).toBe('drum');
+    expect(practiceTab?.iconActive).toBe('metronome');
+    expect(practiceTab?.iconInactive).toBe('metronome');
   });
 
   it('Baby tab has correct icon names', () => {
