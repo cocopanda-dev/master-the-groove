@@ -22,10 +22,6 @@ jest.mock('@data-access/stores/use-baby-store', () => ({
     }),
 }));
 
-jest.mock('uuid', () => ({
-  v4: () => 'test-uuid-1234',
-}));
-
 beforeEach(() => {
   jest.clearAllMocks();
 });
@@ -234,7 +230,7 @@ describe('useOnboardingFlow', () => {
 
       expect(mockSetProfile).toHaveBeenCalledWith(
         expect.objectContaining({
-          id: 'test-uuid-1234',
+          id: expect.stringMatching(/^[0-9a-f-]{36}$/),
           role: 'musician',
           rhythmLevel: 'beginner',
           selectedRhythms: ['3-2'],

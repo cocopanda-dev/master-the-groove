@@ -6,6 +6,7 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { GestureProvider, SafeAreaProvider, ThemeProvider, LocalizationProvider } from '@entry-providers';
 import { ErrorBoundary } from '@libs/error-handling/error-boundary';
 import { useUserStore } from '@data-access/stores/use-user-store';
+import { preloadSounds } from '@libs/audio';
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -50,8 +51,12 @@ const RootLayout = () => {
   const [appIsReady, setAppIsReady] = useState(false);
 
   useEffect(() => {
-    setAppIsReady(true);
-    SplashScreen.hideAsync();
+    const prepare = async () => {
+      await preloadSounds();
+      setAppIsReady(true);
+      await SplashScreen.hideAsync();
+    };
+    prepare();
   }, []);
 
   if (!appIsReady) {

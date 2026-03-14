@@ -1,6 +1,6 @@
 // src/libs/sync/sync-queue.ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { v4 as uuid } from 'uuid';
+import { generateId } from '@libs/uuid';
 
 const QUEUE_KEY = 'groovecore:sync-queue';
 
@@ -34,7 +34,7 @@ const saveQueue = async (queue: SyncQueueItem[]): Promise<void> => {
 export const addToQueue = async (params: AddParams): Promise<void> => {
   const queue = await getQueue();
   const item: SyncQueueItem = {
-    id: uuid(),
+    id: generateId(),
     table: params.table,
     operation: params.operation,
     payload: params.payload,

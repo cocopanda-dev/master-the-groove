@@ -1,7 +1,7 @@
 // src/data-access/stores/use-lesson-store.ts
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { v4 as uuid } from 'uuid';
+import { generateId } from '@libs/uuid';
 import { asyncStorageAdapter } from './create-persisted-store';
 import { registerResetFn } from './store-reset';
 import type { LessonProgress } from '@types';
@@ -31,7 +31,7 @@ export const useLessonStore = create<LessonState & LessonActions>()(
         if (existing) return; // don't overwrite
 
         const entry: LessonProgress = {
-          id: uuid(),
+          id: generateId(),
           userId: '',
           polyrhythmId,
           currentStep: 1,

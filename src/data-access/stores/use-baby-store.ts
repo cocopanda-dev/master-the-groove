@@ -1,7 +1,7 @@
 // src/data-access/stores/use-baby-store.ts
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { v4 as uuid } from 'uuid';
+import { generateId } from '@libs/uuid';
 import { asyncStorageAdapter } from './create-persisted-store';
 import { registerResetFn } from './store-reset';
 import type { BabyProfile, BabySession, BabyActivityType } from '@types';
@@ -53,7 +53,7 @@ export const useBabyStore = create<BabyState & BabyActions>()(
 
       logBabySession: (params) => {
         const session: BabySession = {
-          id: uuid(),
+          id: generateId(),
           babyProfileId: params.babyProfileId,
           activityType: params.activityType,
           duration: params.duration,

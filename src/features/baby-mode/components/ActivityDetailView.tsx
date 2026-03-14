@@ -5,6 +5,7 @@ import { Text } from '@design-system';
 import { colors, spacing } from '@design-system/tokens';
 import { useBabyStore } from '@data-access/stores';
 import type { BabyActivityCard } from '../types';
+import { playSound } from '@libs/audio';
 import { capBabyVolume } from '../constants';
 import { useBabySessionTimer } from '../hooks/use-baby-session-timer';
 import { BabyResponsePrompt } from './BabyResponsePrompt';
@@ -28,9 +29,7 @@ export const ActivityDetailView = ({
   const timer = useBabySessionTimer();
   const logBabySession = useBabyStore((s) => s.logBabySession);
 
-  // TODO(audio): Apply capBabyVolume(0.4) to audio player volume when audio is integrated.
-  // All baby-mode audio MUST use capBabyVolume() — see constants.ts.
-  void capBabyVolume(0.4);
+  const babyVolume = capBabyVolume(0.4);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -41,6 +40,7 @@ export const ActivityDetailView = ({
   const handleStart = useCallback(() => {
     setIsActive(true);
     activityStartRef.current = Date.now();
+    playSound('click', babyVolume, 0).catch(() => {});
     timer.start();
   }, [timer]);
 

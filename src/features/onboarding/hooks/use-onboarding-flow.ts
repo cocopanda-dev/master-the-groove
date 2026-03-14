@@ -1,6 +1,6 @@
 // src/features/onboarding/hooks/use-onboarding-flow.ts
 import { useCallback, useMemo, useState } from 'react';
-import { v4 as uuid } from 'uuid';
+import { generateId } from '@libs/uuid';
 import { useUserStore } from '@data-access/stores/use-user-store';
 import { useBabyStore } from '@data-access/stores/use-baby-store';
 import { calculateStageFromBirthDate } from '@operations/baby/calculate-stage';
@@ -85,7 +85,7 @@ export const useOnboardingFlow = () => {
   // Completion
   const completeFlow = useCallback(() => {
     const now = new Date().toISOString();
-    const userId = uuid();
+    const userId = generateId();
 
     // Build genre list: include custom genre if "Other" is selected and text is non-empty
     const genres = [...data.genrePreferences];
@@ -116,7 +116,7 @@ export const useOnboardingFlow = () => {
     if (needsBabyScreen && data.babyBirthDate) {
       const stage = calculateStageFromBirthDate(data.babyBirthDate);
       setBabyProfile({
-        id: uuid(),
+        id: generateId(),
         userId,
         babyName: data.babyName.trim() || 'Baby',
         birthDate: data.babyBirthDate,

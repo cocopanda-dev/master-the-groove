@@ -15,6 +15,7 @@ module.exports = function (api) {
             '@design-system': './src/design-system',
             '@types': './src/types',
             '@entry-providers': './src/entry-providers',
+            '@navigation': './src/navigation',
             '@assets': './src/assets',
           },
         },

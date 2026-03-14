@@ -1,9 +1,11 @@
 // src/features/baby-mode/components/BabyVisualizerScreen.tsx
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Pressable, Animated, Dimensions } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
 import { Text } from '@design-system';
 import { borderRadius, colors, spacing } from '@design-system/tokens';
 import { useBabyStore } from '@data-access/stores';
+import { playSound } from '@libs/audio';
 import { VISUALIZER_BPM_MIN, VISUALIZER_BPM_MAX, capBabyVolume } from '../constants';
 import { useBabySessionTimer } from '../hooks/use-baby-session-timer';
 import { BabyResponsePrompt } from './BabyResponsePrompt';
@@ -48,6 +50,7 @@ export const BabyVisualizerScreenComponent = ({
   babyName,
   onClose,
 }: BabyVisualizerScreenComponentProps) => {
+  const isFocused = useIsFocused();
   const [bpm, setBpm] = useState(70);
   const [colorOffset, setColorOffset] = useState(0);
   const [showResponse, setShowResponse] = useState(false);
@@ -59,9 +62,7 @@ export const BabyVisualizerScreenComponent = ({
   const timer = useBabySessionTimer();
   const logBabySession = useBabyStore((s) => s.logBabySession);
 
-  // TODO(audio): Apply capBabyVolume(0.3) to audio player volume when audio is integrated.
-  // All baby-mode audio MUST use capBabyVolume() — see constants.ts.
-  void capBabyVolume(0.3);
+  const babyVolume = capBabyVolume(0.3);
 
   // Start timer on mount
   useEffect(() => {
@@ -73,10 +74,20 @@ export const BabyVisualizerScreenComponent = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Beat-synced animation
+  // Beat-synced animation — only when screen is focused
   useEffect(() => {
+    if (!isFocused) {
+      if (beatIntervalRef.current) {
+        clearInterval(beatIntervalRef.current);
+        beatIntervalRef.current = null;
+      }
+      return;
+    }
+
     const interval = (60 / bpm) * 1000;
     beatIntervalRef.current = setInterval(() => {
+      // Play soft beat sound
+      playSound('woodblock', babyVolume, 0).catch(() => {});
       // Cycle colors on beat
       setColorOffset((prev) => (prev + 1) % colors.babyVisualizerColors.length);
 
@@ -100,18 +111,24 @@ export const BabyVisualizerScreenComponent = ({
     return () => {
       if (beatIntervalRef.current) {
         clearInterval(beatIntervalRef.current);
+        beatIntervalRef.current = null;
       }
     };
-  }, [bpm, shapes]);
+  }, [bpm, shapes, isFocused, babyVolume]);
 
   // Gentle float/drift between beats
   useEffect(() => {
-    const driftAnimation = () => {
-      for (const shape of shapes) {
+    for (const shape of shapes) {
+      Animated.loop(
         Animated.parallel([
           Animated.sequence([
             Animated.timing(shape.translateX, {
-              toValue: (Math.random() - 0.5) * 30,
+              toValue: 15,
+              duration: 3000,
+              useNativeDriver: true,
+            }),
+            Animated.timing(shape.translateX, {
+              toValue: -15,
               duration: 3000,
               useNativeDriver: true,
             }),
@@ -123,7 +140,12 @@ export const BabyVisualizerScreenComponent = ({
           ]),
           Animated.sequence([
             Animated.timing(shape.translateY, {
-              toValue: (Math.random() - 0.5) * 30,
+              toValue: 15,
+              duration: 3500,
+              useNativeDriver: true,
+            }),
+            Animated.timing(shape.translateY, {
+              toValue: -15,
               duration: 3500,
               useNativeDriver: true,
             }),
@@ -133,10 +155,9 @@ export const BabyVisualizerScreenComponent = ({
               useNativeDriver: true,
             }),
           ]),
-        ]).start(() => driftAnimation());
-      }
-    };
-    driftAnimation();
+        ]),
+      ).start();
+    }
 
     return () => {
       for (const shape of shapes) {

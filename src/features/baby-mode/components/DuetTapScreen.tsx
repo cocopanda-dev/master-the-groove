@@ -1,9 +1,11 @@
 // src/features/baby-mode/components/DuetTapScreen.tsx
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
 import { Text } from '@design-system';
 import { colors, spacing } from '@design-system/tokens';
 import { useBabyStore } from '@data-access/stores';
+import { playSound } from '@libs/audio';
 import {
   BABY_BPM_DEFAULT,
   BABY_BPM_MIN,
@@ -37,12 +39,11 @@ export const DuetTapScreenComponent = ({
   const startTime = useRef(Date.now());
   const beatIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const isFocused = useIsFocused();
   const timer = useBabySessionTimer();
   const logBabySession = useBabyStore((s) => s.logBabySession);
 
-  // TODO(audio): Apply capBabyVolume(0.4) to audio player volume when audio is integrated.
-  // All baby-mode audio MUST use capBabyVolume() — see constants.ts.
-  void capBabyVolume(0.4);
+  const babyVolume = capBabyVolume(0.4);
 
   // Start timer on mount
   useEffect(() => {
@@ -54,20 +55,30 @@ export const DuetTapScreenComponent = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Background beat via setInterval
+  // Background beat via setInterval — only when screen is focused
   useEffect(() => {
+    if (!isFocused) {
+      if (beatIntervalRef.current) {
+        clearInterval(beatIntervalRef.current);
+        beatIntervalRef.current = null;
+      }
+      return;
+    }
+
     const interval = (60 / bpm) * 1000;
     beatIntervalRef.current = setInterval(() => {
       setBeatPulse(true);
+      playSound('woodblock', babyVolume, 0).catch(() => {});
       setTimeout(() => setBeatPulse(false), 100);
     }, interval);
 
     return () => {
       if (beatIntervalRef.current) {
         clearInterval(beatIntervalRef.current);
+        beatIntervalRef.current = null;
       }
     };
-  }, [bpm]);
+  }, [bpm, isFocused, babyVolume]);
 
   const checkCelebration = useCallback((parentTime: number, babyTime: number) => {
     if (Math.abs(parentTime - babyTime) <= CELEBRATION_WINDOW_MS) {
@@ -79,6 +90,7 @@ export const DuetTapScreenComponent = ({
   const onParentTap = useCallback(() => {
     const now = Date.now();
     lastParentTap.current = now;
+    playSound('click', babyVolume, 0).catch(() => {});
     setParentRipple(true);
     setTimeout(() => setParentRipple(false), 300);
     if (lastBabyTap.current > 0) {
@@ -89,6 +101,7 @@ export const DuetTapScreenComponent = ({
   const onBabyTap = useCallback(() => {
     const now = Date.now();
     lastBabyTap.current = now;
+    playSound('clave', babyVolume, 0).catch(() => {});
     setBabyRipple(true);
     setTimeout(() => setBabyRipple(false), 300);
     if (lastParentTap.current > 0) {

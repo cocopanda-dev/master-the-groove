@@ -19,3 +19,9 @@ jest.mock('expo-keep-awake', () => require('./mocks/expo-keep-awake'));
 jest.mock('@gorhom/bottom-sheet', () => require('./mocks/gorhom-bottom-sheet'));
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 jest.mock('@expo/vector-icons', () => require('./mocks/expo-vector-icons'));
+
+// React Navigation — assume screens are always focused in tests
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useIsFocused: () => true,
+}));

@@ -1,7 +1,7 @@
 // src/data-access/stores/use-session-store.ts
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { v4 as uuid } from 'uuid';
+import { generateId } from '@libs/uuid';
 import { asyncStorageAdapter } from './create-persisted-store';
 import { registerResetFn } from './store-reset';
 import type { Session, FeelState } from '@types';
@@ -195,7 +195,7 @@ export const useSessionStore = create<SessionState & SessionActions & SessionSel
         if (get().lifecycleState !== 'idle') return;
 
         const session: Session = {
-          id: uuid(),
+          id: generateId(),
           userId: '',
           polyrhythmId,
           startedAt: new Date().toISOString(),
