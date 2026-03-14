@@ -17,7 +17,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.groovecore.app",
       "infoPlist": {
-        "UIBackgroundModes": ["audio"]
+        "UIBackgroundModes": [
+          "audio"
+        ]
       }
     },
     "android": {
@@ -45,6 +47,7 @@
       "eas": {
         "projectId": "574e2617-29b2-4731-9cf0-f0b5d90c0caa"
       }
-    }
+    },
+    "owner": "cocopanda91s-organization"
   }
 }
