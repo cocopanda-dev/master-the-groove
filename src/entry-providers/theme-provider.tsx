@@ -8,15 +8,14 @@ interface ThemeContextValue {
   readonly colors: typeof colors;
 }
 
-const ThemeContext = createContext<ThemeContextValue>({
-  mode: 'default',
-  colors,
-});
+const defaultTheme: ThemeContextValue = { mode: 'default', colors };
+
+const ThemeContext = createContext<ThemeContextValue>(defaultTheme);
 
 export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => (
-  <ThemeContext.Provider value={{ mode: 'default', colors }}>
+  <ThemeContext.Provider value={defaultTheme}>
     {children}
   </ThemeContext.Provider>
 );

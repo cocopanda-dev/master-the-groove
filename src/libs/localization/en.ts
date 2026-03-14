@@ -1,7 +1,6 @@
 export const en = {
   common: {
     loading: 'Loading...',
-    error: 'Something went wrong',
     retry: 'Retry',
     cancel: 'Cancel',
     save: 'Save',

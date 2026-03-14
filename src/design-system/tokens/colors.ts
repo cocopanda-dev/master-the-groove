@@ -1,4 +1,4 @@
-export const colors = {
+const base = {
   primary: '#3730A3',
   primaryLight: '#6366F1',
   primaryDark: '#1E1B4B',
@@ -15,33 +15,37 @@ export const colors = {
   warning: '#FBBF24',
   error: '#EF4444',
   border: '#334155',
+} as const;
+
+export const colors = {
+  ...base,
 
   // Layer colors (visualizer)
   layerA: '#818CF8',
   layerB: '#FB923C',
-  beatOne: '#EAB308',
+  beatOne: base.accent,
   layerAFaded: '#818CF840',
   layerBFaded: '#FB923C40',
 
   // Drift feedback
-  driftLockedIn: '#22C55E',
-  driftClose: '#FBBF24',
-  driftDrifting: '#F97316',
+  driftLockedIn: base.success,
+  driftClose: base.warning,
+  driftDrifting: base.secondary,
 
   // Baby mode
   babyBackground: '#FFF7ED',
   babySurface: '#FFFFFF',
-  babyPrimary: '#F97316',
+  babyPrimary: base.secondary,
   babySecondary: '#8B5CF6',
   babyAccent: '#EC4899',
   babyTextPrimary: '#1C1917',
   babyTextSecondary: '#78716C',
   babyTapZoneA: '#3B82F6',
-  babyTapZoneB: '#F97316',
-  babyCelebration: '#EAB308',
+  babyTapZoneB: base.secondary,
+  babyCelebration: base.accent,
 
   // Baby visualizer
-  babyVisualizerColors: ['#F97316', '#FBBF24', '#22C55E', '#3B82F6', '#A855F7', '#EC4899'] as const,
+  babyVisualizerColors: [base.secondary, base.warning, base.success, '#3B82F6', '#A855F7', '#EC4899'] as const,
 } as const;
 
 export type ColorToken = keyof typeof colors;
