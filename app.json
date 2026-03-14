@@ -3,6 +3,7 @@
     "name": "master-the-groove",
     "slug": "master-the-groove",
     "version": "1.0.0",
+    "scheme": "groovecore",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
