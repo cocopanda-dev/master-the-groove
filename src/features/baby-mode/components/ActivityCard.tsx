@@ -2,7 +2,7 @@
 import React from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { Text } from '@design-system';
-import { colors, spacing } from '@design-system/tokens';
+import { colors, shadows, spacing } from '@design-system/tokens';
 import type { BabyActivityCard } from '../types';
 
 interface ActivityCardProps {
@@ -44,10 +44,6 @@ const styles = StyleSheet.create({
     width: 200,
     marginRight: spacing.md,
     gap: spacing.xs,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    ...shadows.sm,
   },
 });

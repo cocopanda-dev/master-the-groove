@@ -84,8 +84,8 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     alignItems: 'center',
     gap: spacing.xs,
-    minWidth: 80,
-    minHeight: 80,
+    minWidth: spacing.tapMinimumBaby,
+    minHeight: spacing.tapMinimumBaby,
     justifyContent: 'center',
   },
   skipButton: {

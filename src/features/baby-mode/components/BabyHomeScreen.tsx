@@ -2,11 +2,10 @@
 import React from 'react';
 import { View, StyleSheet, ScrollView, FlatList } from 'react-native';
 import { Text } from '@design-system';
-import { colors, spacing } from '@design-system/tokens';
+import { borderRadius, colors, spacing } from '@design-system/tokens';
 import { StageBanner } from './StageBanner';
 import { ActivityCard } from './ActivityCard';
 import type { BabyActivityCard } from '../types';
-import { QuickLaunchButtons } from './QuickLaunchButtons';
 import { useBabyStage } from '../hooks/use-baby-stage';
 
 /**
@@ -21,7 +20,7 @@ const SAMPLE_ACTIVITIES: BabyActivityCard[] = [
     instruction:
       'Hold baby upright. Bounce gently on beat 1. Say "DOWN" each time.',
     durationSeconds: 45,
-    icon: '\u{1F476}',
+    activityType: 'bounce',
   },
   {
     id: 'stage1-2',
@@ -30,7 +29,7 @@ const SAMPLE_ACTIVITIES: BabyActivityCard[] = [
     instruction:
       'Rock baby side to side. Alternate left-right on each beat. Hum along.',
     durationSeconds: 60,
-    icon: '\u{1F3B5}',
+    activityType: 'bounce',
   },
   {
     id: 'stage2-1',
@@ -39,7 +38,7 @@ const SAMPLE_ACTIVITIES: BabyActivityCard[] = [
     instruction:
       "Sit facing baby. Play pat-a-cake. Your hands meet baby's hands on beat 1.",
     durationSeconds: 45,
-    icon: '\u{1F44F}',
+    activityType: 'pat-a-cake',
   },
   {
     id: 'stage2-2',
@@ -48,7 +47,7 @@ const SAMPLE_ACTIVITIES: BabyActivityCard[] = [
     instruction:
       'Clap a simple pattern: clap-clap-pause. Repeat. Celebrate any response.',
     durationSeconds: 60,
-    icon: '\u{2B50}',
+    activityType: 'pat-a-cake',
   },
   {
     id: 'stage3-1',
@@ -57,7 +56,7 @@ const SAMPLE_ACTIVITIES: BabyActivityCard[] = [
     instruction:
       'Show baby the screen. Tap the big circle together. Celebrate each tap!',
     durationSeconds: 45,
-    icon: '\u{1F44B}',
+    activityType: 'duet-tap',
   },
   {
     id: 'stage3-2',
@@ -66,7 +65,7 @@ const SAMPLE_ACTIVITIES: BabyActivityCard[] = [
     instruction:
       'March in place together. Stomp on beat 1. Say "STOMP!"',
     durationSeconds: 60,
-    icon: '\u{1F97E}',
+    activityType: 'stomp-clap-game',
   },
 ];
 
@@ -74,7 +73,7 @@ const SAMPLE_ACTIVITIES: BabyActivityCard[] = [
  * Baby Mode home screen composing stage banner, activity cards, and quick launch buttons.
  */
 const BabyHomeScreen = () => {
-  const { stage, hasProfile, babyName } = useBabyStage();
+  const { stage, stageInfo, hasProfile, babyName, ageMonths } = useBabyStage();
 
   if (!hasProfile) {
     return (
@@ -95,7 +94,7 @@ const BabyHomeScreen = () => {
   if (stage === 0) {
     return (
       <View style={styles.container}>
-        <StageBanner />
+        <StageBanner stageInfo={stageInfo} babyName={babyName} ageMonths={ageMonths} />
         <View style={styles.setupPrompt}>
           <Text variant="body" color={colors.babyTextSecondary} align="center">
             Baby mode starts at 3 months. In the meantime, play soft rhythms from
@@ -113,9 +112,7 @@ const BabyHomeScreen = () => {
       style={styles.container}
       contentContainerStyle={styles.scrollContent}
     >
-      <StageBanner />
-
-      <QuickLaunchButtons />
+      <StageBanner stageInfo={stageInfo} babyName={babyName} ageMonths={ageMonths} />
 
       <View style={styles.section}>
         <Text variant="h4" color={colors.babyTextPrimary}>
@@ -126,7 +123,7 @@ const BabyHomeScreen = () => {
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <ActivityCard card={item} />}
+          renderItem={({ item }) => <ActivityCard card={item} onPress={() => {}} />}
           contentContainerStyle={styles.cardList}
         />
       </View>
@@ -153,30 +150,30 @@ const styles = StyleSheet.create({
     backgroundColor: colors.babyBackground,
   },
   scrollContent: {
-    paddingBottom: 32,
+    paddingBottom: spacing.xl,
   },
   setupPrompt: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 32,
-    gap: 12,
+    padding: spacing.xl,
+    gap: spacing.lg,
   },
   section: {
-    marginTop: 24,
-    paddingHorizontal: 16,
-    gap: 12,
+    marginTop: spacing.lg,
+    paddingHorizontal: spacing.md,
+    gap: spacing.lg,
   },
   cardList: {
-    paddingLeft: 8,
-    paddingRight: 16,
+    paddingLeft: spacing.sm,
+    paddingRight: spacing.md,
   },
   comingSoon: {
-    marginTop: 24,
-    marginHorizontal: 16,
-    padding: 16,
+    marginTop: spacing.lg,
+    marginHorizontal: spacing.md,
+    padding: spacing.md,
     backgroundColor: colors.babySurface,
-    borderRadius: 12,
+    borderRadius: borderRadius.lg,
   },
 });
 

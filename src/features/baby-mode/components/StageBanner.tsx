@@ -2,7 +2,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text } from '@design-system';
-import { colors, spacing } from '@design-system/tokens';
+import { colors, shadows, spacing } from '@design-system/tokens';
 import type { BabyStageInfo } from '../types';
 
 interface StageBannerProps {
@@ -37,10 +37,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     alignItems: 'center',
     gap: spacing.xs,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    ...shadows.sm,
   },
 });

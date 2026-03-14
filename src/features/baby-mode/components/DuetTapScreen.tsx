@@ -40,9 +40,9 @@ export const DuetTapScreenComponent = ({
   const timer = useBabySessionTimer();
   const logBabySession = useBabyStore((s) => s.logBabySession);
 
-  // Volume safety: cap all audio to baby-safe maximum.
-  // capBabyVolume will be applied to actual audio playback when audio is integrated.
-  const safeVolume = capBabyVolume(0.4);
+  // TODO(audio): Apply capBabyVolume(0.4) to audio player volume when audio is integrated.
+  // All baby-mode audio MUST use capBabyVolume() — see constants.ts.
+  void capBabyVolume(0.4);
 
   // Start timer on mount
   useEffect(() => {
