@@ -1,4 +1,5 @@
 import '@testing-library/jest-native/extend-expect';
+import './mocks/expo-av';
 
 // Reanimated mock
 jest.mock('react-native-reanimated', () => {
