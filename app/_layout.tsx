@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { GestureProvider, SafeAreaProvider, ThemeProvider, LocalizationProvider } from '@entry-providers';
@@ -51,12 +52,7 @@ const RootLayout = () => {
   useEffect(() => {
     const prepare = async () => {
       try {
-        // Load fonts and preload sounds in parallel
-        // TODO: Add useFonts and preloadSounds when audio engine is built
-        await Promise.all([
-          // Font loading will go here
-          // Audio preloading will go here
-        ]);
+        await Promise.all([]);
       } catch (err) {
         console.warn('Error during app preparation:', err);
       } finally {
@@ -79,6 +75,7 @@ const RootLayout = () => {
           <BottomSheetModalProvider>
             <LocalizationProvider>
               <ErrorBoundary>
+                <StatusBar style="light" />
                 <RootLayoutNav />
               </ErrorBoundary>
             </LocalizationProvider>
