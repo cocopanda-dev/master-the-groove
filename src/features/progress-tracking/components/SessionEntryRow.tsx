@@ -6,17 +6,17 @@ import type { Session } from '@types';
 import { FEEL_STATE_CONFIG, SESSION_MODE_ICONS } from '../constants';
 import { formatDuration, formatTime } from '../utils';
 
-type SessionEntryRowProps = {
+export interface SessionEntryRowProps {
   readonly session: Session;
   readonly testID?: string;
-};
+}
 
 /**
  * Single session row with all metadata:
  * polyrhythm badge, mode icon, duration, BPM range,
  * disappearing beat stage (conditional), feel state dot, timestamp.
  */
-const SessionEntryRow = ({ session, testID }: SessionEntryRowProps) => {
+export function SessionEntryRow({ session, testID }: SessionEntryRowProps) {
   const modeIcon = SESSION_MODE_ICONS[session.mode] ?? 'play-circle';
   const bpmRange =
     session.bpmStart === session.bpmEnd
@@ -76,7 +76,7 @@ const SessionEntryRow = ({ session, testID }: SessionEntryRowProps) => {
       </View>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   row: {
@@ -119,5 +119,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export { SessionEntryRow };
-export type { SessionEntryRowProps };

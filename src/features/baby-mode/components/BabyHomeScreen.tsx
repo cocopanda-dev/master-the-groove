@@ -72,7 +72,7 @@ const SAMPLE_ACTIVITIES: BabyActivityCard[] = [
 /**
  * Baby Mode home screen composing stage banner, activity cards, and quick launch buttons.
  */
-const BabyHomeScreen = () => {
+function BabyHomeScreen() {
   const { stage, stageInfo, hasProfile, babyName, ageMonths } = useBabyStage();
 
   if (!hasProfile) {
@@ -142,7 +142,7 @@ const BabyHomeScreen = () => {
       )}
     </ScrollView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {

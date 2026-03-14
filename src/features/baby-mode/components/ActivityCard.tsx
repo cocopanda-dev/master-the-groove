@@ -5,12 +5,12 @@ import { Text } from '@design-system';
 import { colors, shadows, spacing } from '@design-system/tokens';
 import type { BabyActivityCard } from '../types';
 
-interface ActivityCardProps {
+export interface ActivityCardProps {
   readonly card: BabyActivityCard;
   readonly onPress?: (card: BabyActivityCard) => void;
 }
 
-export const ActivityCard = ({ card, onPress }: ActivityCardProps) => {
+export function ActivityCard({ card, onPress }: ActivityCardProps) {
   const durationLabel = card.durationSeconds >= 60
     ? `${Math.floor(card.durationSeconds / 60)} min`
     : `${card.durationSeconds}s`;
@@ -35,7 +35,7 @@ export const ActivityCard = ({ card, onPress }: ActivityCardProps) => {
       </Text>
     </Pressable>
   );
-};
+}
 
 const styles = StyleSheet.create({
   card: {

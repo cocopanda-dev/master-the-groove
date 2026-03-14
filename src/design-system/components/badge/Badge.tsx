@@ -15,7 +15,7 @@ const variantConfig: Record<BadgeVariant, { bg: string; text: string }> = {
   comingSoon: { bg: colors.border, text: colors.textMuted },
 };
 
-export const Badge = ({ label, variant = 'neutral', testID }: BadgeProps) => {
+export function Badge({ label, variant = 'neutral', testID }: BadgeProps) {
   const config = variantConfig[variant];
   return (
     <View
@@ -29,7 +29,7 @@ export const Badge = ({ label, variant = 'neutral', testID }: BadgeProps) => {
       </Text>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {

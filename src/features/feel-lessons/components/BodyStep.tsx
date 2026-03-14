@@ -7,13 +7,13 @@ import { useAudioStore } from '@data-access/stores/use-audio-store';
 import { useShallow } from 'zustand/shallow';
 import type { LessonStep } from '@types';
 
-interface BodyStepProps {
+export interface BodyStepProps {
   readonly step: LessonStep;
   readonly onComplete: () => void;
   readonly isCompleted: boolean;
 }
 
-export const BodyStep = ({ step, onComplete, isCompleted }: BodyStepProps) => {
+export function BodyStep({ step, onComplete, isCompleted }: BodyStepProps) {
   const { setRatio, setBpm, setStereoSplit, play, stop } = useAudioStore(
     useShallow((s) => ({
       setRatio: s.setRatio,
@@ -75,7 +75,12 @@ export const BodyStep = ({ step, onComplete, isCompleted }: BodyStepProps) => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const timerColor: string = isCompleted ? colors.success : isRunning ? colors.primaryLight : colors.textPrimary;
+  let timerColor: string = colors.textPrimary;
+  if (isCompleted) {
+    timerColor = colors.success;
+  } else if (isRunning) {
+    timerColor = colors.primaryLight;
+  }
 
   return (
     <ScrollView
@@ -116,7 +121,7 @@ export const BodyStep = ({ step, onComplete, isCompleted }: BodyStepProps) => {
       ) : null}
     </ScrollView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
