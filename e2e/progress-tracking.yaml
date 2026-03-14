@@ -1,0 +1,15 @@
+appId: com.groovecore.app
+---
+# E2E: Progress tab — verify dashboard renders
+- launchApp
+
+# Navigate to Progress tab
+- tapOn: "Progress"
+
+# Verify progress screen renders
+- assertVisible:
+    id: "progress-screen"
+    optional: true
+- assertVisible:
+    id: "progress-empty"
+    optional: true

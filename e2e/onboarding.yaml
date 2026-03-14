@@ -1,0 +1,31 @@
+appId: com.groovecore.app
+---
+# E2E: Onboarding flow — musician role, select 3:2, complete onboarding
+- launchApp:
+    clearState: true
+
+# Step 1: Welcome screen
+- assertVisible: "Welcome to GrooveCore"
+- tapOn: "Get Started"
+
+# Step 2: Role selection
+- assertVisible: "What brings you here?"
+- tapOn: "Musician"
+- tapOn: "Continue"
+
+# Step 3: Experience level
+- assertVisible: "experience"
+- tapOn: "Beginner"
+- tapOn: "Continue"
+
+# Step 4: Rhythm selection
+- assertVisible: "3:2"
+- tapOn: "3:2"
+- tapOn: "Continue"
+
+# Step 5: Genre preferences
+- tapOn: "Continue"
+
+# Should land on Learn tab
+- assertVisible: "Learn"
+- assertVisible: "3:2"

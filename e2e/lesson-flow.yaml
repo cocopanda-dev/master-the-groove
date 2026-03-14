@@ -1,0 +1,21 @@
+appId: com.groovecore.app
+---
+# E2E: Start a lesson — navigate to 3:2 lesson, verify step progression
+- launchApp
+
+# Should be on Learn tab
+- assertVisible: "Learn"
+
+# Tap on 3:2 polyrhythm
+- tapOn: "3:2"
+
+# Start lesson
+- tapOn:
+    text: ".*[Ll]esson.*"
+    optional: true
+
+# Step 1 should be Context step
+- assertVisible:
+    id: "context-step"
+    optional: true
+- assertVisible: "Step 1"

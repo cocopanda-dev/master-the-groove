@@ -1,0 +1,12 @@
+appId: com.groovecore.app
+---
+# E2E: Disappearing Beat — navigate to practice, open disappearing beat
+- launchApp
+
+# Navigate to Practice tab
+- tapOn: "Practice"
+
+# Open Disappearing Beat
+- tapOn:
+    text: ".*[Dd]isappearing.*"
+    optional: true

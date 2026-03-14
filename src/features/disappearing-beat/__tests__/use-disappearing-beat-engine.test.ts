@@ -22,7 +22,7 @@ const mockOnCycleComplete = jest.fn((cb: (count: number) => void) => {
   };
 });
 
-jest.mock('@data-access/stores/use-audio-store', () => ({
+jest.mock('@data-access/stores', () => ({
   useAudioStore: (selector: (state: Record<string, unknown>) => unknown) => {
     const state = {
       play: mockPlay,
