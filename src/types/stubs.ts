@@ -87,7 +87,7 @@ interface MnemonicRequest {
 /** Response with generated mnemonic options */
 interface MnemonicResponse {
   /** 2-3 mnemonic options that fit the syllable count */
-  mnemonics: Array<{
+  mnemonics: {
     /** The mnemonic phrase */
     phrase: string;
 
@@ -96,7 +96,7 @@ interface MnemonicResponse {
 
     /** Which theme it matches */
     theme: string;
-  }>;
+  }[];
 }
 
 export type {

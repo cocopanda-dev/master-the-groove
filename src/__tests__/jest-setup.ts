@@ -13,6 +13,9 @@ jest.mock('react-native-reanimated', () => {
   return Reanimated;
 });
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 jest.mock('expo-keep-awake', () => require('./mocks/expo-keep-awake'));
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 jest.mock('@gorhom/bottom-sheet', () => require('./mocks/gorhom-bottom-sheet'));
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 jest.mock('@expo/vector-icons', () => require('./mocks/expo-vector-icons'));

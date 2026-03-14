@@ -74,6 +74,7 @@ describe('Transport', () => {
   });
 
   it('applies stereo split panning when enabled', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { playSound: mockPlay } = require('../sound-loader');
     const transport = createTransport();
     transport.setRatio(3, 2);

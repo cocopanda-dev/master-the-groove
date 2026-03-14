@@ -63,6 +63,7 @@ const useBottomSheetModal = jest.fn().mockReturnValue({
   dismissAll: jest.fn(),
 });
 
+// eslint-disable-next-line import/no-default-export
 export default BottomSheet;
 
 export {

@@ -121,7 +121,7 @@ export const useSessionStore = create<SessionState & SessionActions & SessionSel
         const todayStr = toLocalDateString(today.toISOString());
 
         // Start counting from today; if today has no sessions, start from yesterday
-        let currentDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const currentDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
         if (!dateSet.has(todayStr)) {
           currentDate.setDate(currentDate.getDate() - 1);
           const yesterdayStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;

@@ -1,4 +1,4 @@
-const listeners: Array<(state: { isConnected: boolean; isInternetReachable: boolean }) => void> = [];
+const listeners: ((state: { isConnected: boolean; isInternetReachable: boolean }) => void)[] = [];
 
 jest.mock('@react-native-community/netinfo', () => ({
   addEventListener: jest.fn((cb: (state: { isConnected: boolean; isInternetReachable: boolean }) => void) => {

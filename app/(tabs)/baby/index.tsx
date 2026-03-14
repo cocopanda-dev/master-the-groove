@@ -14,12 +14,11 @@ import {
   SessionHistoryList,
   VolumeWarningModal,
   ParentalGate,
+  stage1Cards,
+  stage2Cards,
+  stage3Cards,
 } from '@features/baby-mode';
 import type { BabyActivityCard } from '@features/baby-mode';
-
-import stage1Cards from '@features/baby-mode/data/stage-1.json';
-import stage2Cards from '@features/baby-mode/data/stage-2.json';
-import stage3Cards from '@features/baby-mode/data/stage-3.json';
 
 // JSON data conforms to BabyActivityCard shape (validated by stage JSON schema).
 // resolveJsonModule infers a narrow literal type, so we widen to BabyActivityCard[].

@@ -40,3 +40,8 @@ export { DuetTapScreenComponent } from './components/DuetTapScreen';
 export { BabyVisualizerScreenComponent } from './components/BabyVisualizerScreen';
 export { SessionHistoryList } from './components/SessionHistoryList';
 export { QuickLaunchButtons } from './components/QuickLaunchButtons';
+
+// Stage data (JSON)
+export { default as stage1Cards } from './data/stage-1.json';
+export { default as stage2Cards } from './data/stage-2.json';
+export { default as stage3Cards } from './data/stage-3.json';
