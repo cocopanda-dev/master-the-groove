@@ -1,0 +1,47 @@
+[
+  {
+    "id": "s2-patacake-basic",
+    "stageId": 2,
+    "title": "Pat-a-Cake Classic",
+    "instruction": "Clap your hands together with your baby, gently guiding their hands to meet yours on the beat.",
+    "durationSeconds": 60,
+    "activityType": "pat-a-cake",
+    "audioConfig": { "bpm": 80, "soundId": "soft-chime" }
+  },
+  {
+    "id": "s2-patacake-slow",
+    "stageId": 2,
+    "title": "Slow Clap",
+    "instruction": "Take it slow. Clap once per beat, letting your baby anticipate each clap.",
+    "durationSeconds": 60,
+    "activityType": "pat-a-cake",
+    "audioConfig": { "bpm": 60, "soundId": "soft-bell" }
+  },
+  {
+    "id": "s2-bounce-clap",
+    "stageId": 2,
+    "title": "Bounce & Clap",
+    "instruction": "Alternate between bouncing your baby and clapping together. Switch every 4 beats.",
+    "durationSeconds": 90,
+    "activityType": "pat-a-cake",
+    "audioConfig": { "bpm": 70, "soundId": "soft-chime" }
+  },
+  {
+    "id": "s2-listen-move",
+    "stageId": 2,
+    "title": "Listen & Move",
+    "instruction": "Play the beat and let your baby move freely. Mirror their movements when you can.",
+    "durationSeconds": 90,
+    "activityType": "passive-listening",
+    "audioConfig": { "bpm": 80, "soundId": "soft-chime" }
+  },
+  {
+    "id": "s2-patacake-fast",
+    "stageId": 2,
+    "title": "Quick Hands",
+    "instruction": "Speed up the clapping! Keep it fun and silly. It's OK if baby can't keep up.",
+    "durationSeconds": 60,
+    "activityType": "pat-a-cake",
+    "audioConfig": { "bpm": 90, "soundId": "soft-chime" }
+  }
+]

@@ -1,0 +1,47 @@
+[
+  {
+    "id": "s1-bounce-basic",
+    "stageId": 1,
+    "title": "Gentle Bounce",
+    "instruction": "Hold your baby securely and gently bounce to the beat. Keep movements small and rhythmic.",
+    "durationSeconds": 60,
+    "activityType": "bounce",
+    "audioConfig": { "bpm": 70, "soundId": "soft-chime" }
+  },
+  {
+    "id": "s1-bounce-sway",
+    "stageId": 1,
+    "title": "Sway & Hum",
+    "instruction": "Sway side to side with your baby while humming along to the gentle beat.",
+    "durationSeconds": 90,
+    "activityType": "bounce",
+    "audioConfig": { "bpm": 60, "soundId": "soft-bell" }
+  },
+  {
+    "id": "s1-listen-chimes",
+    "stageId": 1,
+    "title": "Chime Time",
+    "instruction": "Let your baby listen to the soft chimes. Watch their face for reactions to the sounds.",
+    "durationSeconds": 60,
+    "activityType": "passive-listening",
+    "audioConfig": { "bpm": 80, "soundId": "soft-chime" }
+  },
+  {
+    "id": "s1-bounce-knee",
+    "stageId": 1,
+    "title": "Knee Ride",
+    "instruction": "Sit your baby on your knee and gently bounce up and down with the rhythm.",
+    "durationSeconds": 60,
+    "activityType": "bounce",
+    "audioConfig": { "bpm": 75, "soundId": "soft-chime" }
+  },
+  {
+    "id": "s1-listen-bells",
+    "stageId": 1,
+    "title": "Bell Lullaby",
+    "instruction": "Hold your baby close and let the gentle bells create a calm, rhythmic atmosphere.",
+    "durationSeconds": 120,
+    "activityType": "passive-listening",
+    "audioConfig": { "bpm": 60, "soundId": "soft-bell" }
+  }
+]
