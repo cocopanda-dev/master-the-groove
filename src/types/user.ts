@@ -11,6 +11,9 @@ interface UserProfile {
   /** Primary role — determines tab visibility and content emphasis */
   role: 'musician' | 'parent' | 'both';
 
+  /** Self-assessed rhythm experience level from onboarding */
+  rhythmLevel: 'beginner' | 'intermediate' | 'advanced';
+
   /** Polyrhythm ratios selected during onboarding (e.g., ['3-2', '4-3']) */
   selectedRhythms: string[];
 
