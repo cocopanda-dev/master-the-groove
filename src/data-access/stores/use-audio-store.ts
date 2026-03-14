@@ -51,6 +51,15 @@ const muteManager = createMuteManager();
 const fadeEngine = createFadeEngine();
 const tapTempoEngine = createTapTempo();
 
+const applyLayerVolume = (
+  layer: 'A' | 'B',
+  volume: number,
+  set: (partial: Partial<AudioState>) => void,
+): void => {
+  transport[layer === 'A' ? 'setVolumeA' : 'setVolumeB'](volume);
+  set(layer === 'A' ? { volumeA: volume } : { volumeB: volume });
+};
+
 export const useAudioStore = create<AudioState & AudioActions>()((set, get) => ({
   // Initial state
   isPlaying: false,
@@ -148,32 +157,20 @@ export const useAudioStore = create<AudioState & AudioActions>()((set, get) => (
 
   muteLayer: (layer) => {
     const vol = layer === 'A' ? get().volumeA : get().volumeB;
-    muteManager.mute(layer, vol, (l, v) => {
-      transport[l === 'A' ? 'setVolumeA' : 'setVolumeB'](v);
-      set(l === 'A' ? { volumeA: v } : { volumeB: v });
-    });
+    muteManager.mute(layer, vol, (l, v) => applyLayerVolume(l, v, set));
   },
 
   unmuteLayer: (layer) => {
-    muteManager.unmute(layer, (l, v) => {
-      transport[l === 'A' ? 'setVolumeA' : 'setVolumeB'](v);
-      set(l === 'A' ? { volumeA: v } : { volumeB: v });
-    });
+    muteManager.unmute(layer, (l, v) => applyLayerVolume(l, v, set));
   },
 
   muteAll: () => {
     const { volumeA, volumeB } = get();
-    muteManager.muteAll(volumeA, volumeB, (l, v) => {
-      transport[l === 'A' ? 'setVolumeA' : 'setVolumeB'](v);
-      set(l === 'A' ? { volumeA: v } : { volumeB: v });
-    });
+    muteManager.muteAll(volumeA, volumeB, (l, v) => applyLayerVolume(l, v, set));
   },
 
   unmuteAll: () => {
-    muteManager.unmuteAll((l, v) => {
-      transport[l === 'A' ? 'setVolumeA' : 'setVolumeB'](v);
-      set(l === 'A' ? { volumeA: v } : { volumeB: v });
-    });
+    muteManager.unmuteAll((l, v) => applyLayerVolume(l, v, set));
   },
 
   fadeLayer: (layer, targetVolume, durationCycles) => {
@@ -185,10 +182,7 @@ export const useAudioStore = create<AudioState & AudioActions>()((set, get) => (
       fromVolume: currentVol,
       targetVolume,
       totalSteps,
-      setVolume: (l, v) => {
-        transport[l === 'A' ? 'setVolumeA' : 'setVolumeB'](v);
-        set(l === 'A' ? { volumeA: v } : { volumeB: v });
-      },
+      setVolume: (l, v) => applyLayerVolume(l, v, set),
     });
   },
 

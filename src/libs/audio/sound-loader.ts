@@ -1,6 +1,7 @@
 // src/libs/audio/sound-loader.ts
 import { Audio } from 'expo-av';
 import type { SoundId } from '@types';
+import { clampVolume } from './volume-utils';
 
 const POOL_SIZE = 4;
 
@@ -61,7 +62,7 @@ export const playSound = async (
   await instance.setStatusAsync({
     shouldPlay: true,
     positionMillis: 0,
-    volume: Math.max(0, Math.min(1, volume)),
+    volume: clampVolume(volume),
     audioPan: Math.max(-1, Math.min(1, pan)),
   });
 };

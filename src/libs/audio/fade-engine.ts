@@ -1,4 +1,6 @@
 // src/libs/audio/fade-engine.ts
+import { clampVolume } from './volume-utils';
+
 type FadeConfig = {
   layer: 'A' | 'B';
   fromVolume: number;
@@ -35,7 +37,7 @@ export const createFadeEngine = () => {
 
     fade.currentStep++;
     const newVolume = fade.fromVolume + fade.delta * fade.currentStep;
-    const clamped = Math.max(0, Math.min(1, Math.round(newVolume * 1000) / 1000));
+    const clamped = clampVolume(Math.round(newVolume * 1000) / 1000);
 
     fade.setVolume(layer, clamped);
 
