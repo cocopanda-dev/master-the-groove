@@ -1,40 +1,106 @@
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, TextInput } from 'react-native';
 import { Text, Button } from '@design-system';
+import { colors } from '@design-system/tokens/colors';
+import { borderRadius } from '@design-system/tokens/border-radius';
 import { useRouter } from 'expo-router';
-import { useUserStore } from '@data-access/stores/use-user-store';
+import {
+  useOnboardingContext,
+  ProgressDots,
+  GenreChip,
+  GENRES,
+  OTHER_GENRE_MAX_LENGTH,
+} from '@features/onboarding';
 
 const GenresScreen = () => {
   const router = useRouter();
-  const profile = useUserStore((state) => state.profile);
-  const role = profile?.role;
+  const {
+    data,
+    toggleGenre,
+    setCustomGenre,
+    needsBabyScreen,
+    completeFlow,
+    totalSteps,
+    stepIndex,
+  } = useOnboardingContext();
+
+  const showOtherInput = data.genrePreferences.includes('Other');
 
   const handleAdvance = () => {
-    if (role === 'parent' || role === 'both') {
+    if (needsBabyScreen) {
       router.push('/(onboarding)/baby-age');
     } else {
-      // TODO: Call userStore.completeOnboarding() when implemented
-      router.replace('/(tabs)/learn');
+      completeFlow();
     }
+  };
+
+  const handleSkip = () => {
+    if (needsBabyScreen) {
+      router.push('/(onboarding)/baby-age');
+    } else {
+      completeFlow();
+    }
+  };
+
+  const handleBack = () => {
+    router.back();
   };
 
   return (
     <View style={styles.container}>
-      <Text variant="h2">Genre Preferences</Text>
-      <Text variant="body">Select genres you enjoy (multi-select)</Text>
-      {/* TODO: Genre multi-select UI in feature epic */}
-      <Button
-        onPress={handleAdvance}
-        accessibilityLabel="Continue to next step"
-      >
-        Continue
-      </Button>
-      <Button
-        onPress={handleAdvance}
-        accessibilityLabel="Skip genre selection"
-        variant="secondary"
-      >
-        Skip
-      </Button>
+      <ProgressDots total={totalSteps} currentIndex={stepIndex('genres')} />
+      <View style={styles.headerRow}>
+        <Text variant="h2" color={colors.textPrimary}>
+          What music do you love?
+        </Text>
+        <Button
+          onPress={handleSkip}
+          variant="ghost"
+          size="sm"
+          accessibilityLabel="Skip genre selection"
+        >
+          Skip
+        </Button>
+      </View>
+      <Text variant="body" color={colors.textSecondary}>
+        We&apos;ll use this to personalize your experience
+      </Text>
+      <View style={styles.chipGrid}>
+        {GENRES.map((genre) => (
+          <GenreChip
+            key={genre}
+            genre={genre}
+            selected={data.genrePreferences.includes(genre)}
+            onToggle={toggleGenre}
+          />
+        ))}
+      </View>
+      {showOtherInput && (
+        <TextInput
+          style={styles.otherInput}
+          placeholder="Enter your genre..."
+          placeholderTextColor={colors.textMuted}
+          value={data.customGenre}
+          onChangeText={setCustomGenre}
+          maxLength={OTHER_GENRE_MAX_LENGTH}
+          accessibilityLabel="Custom genre input"
+          testID="other-genre-input"
+        />
+      )}
+      <View style={styles.footer}>
+        <Button
+          onPress={handleAdvance}
+          accessibilityLabel={needsBabyScreen ? 'Continue to baby info' : "Complete onboarding"}
+        >
+          Continue
+        </Button>
+        <Button
+          onPress={handleBack}
+          variant="ghost"
+          accessibilityLabel="Go back to role selection"
+        >
+          Back
+        </Button>
+      </View>
     </View>
   );
 };
@@ -42,10 +108,35 @@ const GenresScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: colors.background,
+    padding: 24,
+    paddingTop: 60,
     gap: 16,
-    padding: 32,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  chipGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 8,
+  },
+  otherInput: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    padding: 12,
+    color: colors.textPrimary,
+    fontSize: 16,
+  },
+  footer: {
+    marginTop: 'auto',
+    gap: 8,
+    paddingBottom: 32,
   },
 });
 

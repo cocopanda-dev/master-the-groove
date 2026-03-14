@@ -1,24 +1,51 @@
 import { View, StyleSheet } from 'react-native';
 import { Text, Button } from '@design-system';
+import { colors } from '@design-system/tokens/colors';
 import { useRouter } from 'expo-router';
+import {
+  useOnboardingContext,
+  ProgressDots,
+  RhythmCard,
+  RHYTHM_OPTIONS,
+} from '@features/onboarding';
 
-const WelcomeScreen = () => {
+const RhythmsScreen = () => {
   const router = useRouter();
+  const { data, toggleRhythm, canAdvanceFromRhythms, totalSteps, stepIndex } =
+    useOnboardingContext();
 
-  const handleGetStarted = () => {
-    router.push('/(onboarding)/role');
+  const handleNext = () => {
+    router.push('/(onboarding)/experience');
   };
 
   return (
     <View style={styles.container}>
-      <Text variant="h1">GrooveCore</Text>
-      <Text variant="body">What do you want to feel?</Text>
-      <Button
-        onPress={handleGetStarted}
-        accessibilityLabel="Get started with onboarding"
-      >
-        Get Started
-      </Button>
+      <ProgressDots total={totalSteps} currentIndex={stepIndex('rhythms')} />
+      <Text variant="h2" align="center" color={colors.textPrimary}>
+        What do you want to feel?
+      </Text>
+      <Text variant="body" align="center" color={colors.textSecondary}>
+        Select the polyrhythms you want to explore
+      </Text>
+      <View style={styles.grid}>
+        {RHYTHM_OPTIONS.map((option) => (
+          <RhythmCard
+            key={option.id}
+            option={option}
+            selected={data.selectedRhythms.includes(option.id)}
+            onToggle={toggleRhythm}
+          />
+        ))}
+      </View>
+      <View style={styles.footer}>
+        <Button
+          onPress={handleNext}
+          disabled={!canAdvanceFromRhythms}
+          accessibilityLabel="Continue to experience selection"
+        >
+          Next
+        </Button>
+      </View>
     </View>
   );
 };
@@ -26,11 +53,22 @@ const WelcomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
+    backgroundColor: colors.background,
+    padding: 24,
+    paddingTop: 60,
+    gap: 16,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
     justifyContent: 'center',
-    gap: 24,
-    padding: 32,
+    marginTop: 16,
+  },
+  footer: {
+    marginTop: 'auto',
+    paddingBottom: 32,
   },
 });
 
-export default WelcomeScreen;
+export default RhythmsScreen;

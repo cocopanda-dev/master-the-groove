@@ -5,17 +5,22 @@ import { useRouter } from 'expo-router';
 import {
   useOnboardingContext,
   ProgressDots,
-  RoleCard,
-  ROLE_OPTIONS,
+  ExperienceLevelCard,
+  EXPERIENCE_LEVELS,
 } from '@features/onboarding';
 
-const RoleScreen = () => {
+const ExperienceScreen = () => {
   const router = useRouter();
-  const { data, setRole, canAdvanceFromRole, totalSteps, stepIndex } =
-    useOnboardingContext();
+  const {
+    data,
+    setRhythmLevel,
+    canAdvanceFromExperience,
+    totalSteps,
+    stepIndex,
+  } = useOnboardingContext();
 
   const handleNext = () => {
-    router.push('/(onboarding)/genres');
+    router.push('/(onboarding)/role');
   };
 
   const handleBack = () => {
@@ -24,32 +29,32 @@ const RoleScreen = () => {
 
   return (
     <View style={styles.container}>
-      <ProgressDots total={totalSteps} currentIndex={stepIndex('role')} />
+      <ProgressDots total={totalSteps} currentIndex={stepIndex('experience')} />
       <Text variant="h2" align="center" color={colors.textPrimary}>
-        Who are you?
+        How&apos;s your rhythm experience?
       </Text>
       <View style={styles.cards}>
-        {ROLE_OPTIONS.map((option) => (
-          <RoleCard
-            key={option.role}
+        {EXPERIENCE_LEVELS.map((option) => (
+          <ExperienceLevelCard
+            key={option.level}
             option={option}
-            selected={data.role === option.role}
-            onSelect={setRole}
+            selected={data.rhythmLevel === option.level}
+            onSelect={setRhythmLevel}
           />
         ))}
       </View>
       <View style={styles.footer}>
         <Button
           onPress={handleNext}
-          disabled={!canAdvanceFromRole}
-          accessibilityLabel="Continue to genre selection"
+          disabled={!canAdvanceFromExperience}
+          accessibilityLabel="Continue to role selection"
         >
           Next
         </Button>
         <Button
           onPress={handleBack}
           variant="ghost"
-          accessibilityLabel="Go back to experience selection"
+          accessibilityLabel="Go back to rhythm selection"
         >
           Back
         </Button>
@@ -77,4 +82,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RoleScreen;
+export default ExperienceScreen;
