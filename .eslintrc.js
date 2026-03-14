@@ -37,7 +37,10 @@ module.exports = {
   overrides: [
     {
       files: ['app/**/*.tsx'],
-      rules: { 'import/no-default-export': 'off' },
+      rules: {
+        'import/no-default-export': 'off',
+        'prefer-arrow/prefer-arrow-functions': 'off',
+      },
     },
     {
       files: ['App.tsx', 'index.ts'],
