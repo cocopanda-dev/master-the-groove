@@ -12,3 +12,7 @@ jest.mock('react-native-reanimated', () => {
   Reanimated.default.call = () => {};
   return Reanimated;
 });
+
+jest.mock('expo-keep-awake', () => require('./mocks/expo-keep-awake'));
+jest.mock('@gorhom/bottom-sheet', () => require('./mocks/gorhom-bottom-sheet'));
+jest.mock('@expo/vector-icons', () => require('./mocks/expo-vector-icons'));
