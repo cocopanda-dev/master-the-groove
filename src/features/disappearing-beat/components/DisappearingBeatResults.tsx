@@ -6,7 +6,6 @@ import { colors } from '@design-system/tokens/colors';
 import { spacing } from '@design-system/tokens/spacing';
 import { DriftFeedback } from './DriftFeedback';
 import type { DisappearingBeatResult } from '../types';
-import { STAGE_NUMBER } from '../constants';
 
 type DisappearingBeatResultsProps = {
   readonly result: DisappearingBeatResult;

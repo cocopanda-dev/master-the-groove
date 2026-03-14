@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import { Pressable, Animated, StyleSheet, View } from 'react-native';
 import { Text } from '@design-system';
 import { colors } from '@design-system/tokens/colors';
+import { spacing } from '@design-system/tokens/spacing';
 import { TAP_TARGET_SIZE } from '../constants';
 import type { DisappearingBeatStage } from '../types';
 
@@ -90,7 +91,7 @@ const styles = StyleSheet.create({
   wrapper: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 24,
+    paddingVertical: spacing.lg,
   },
   pulseRing: {
     width: TARGET_OUTER,

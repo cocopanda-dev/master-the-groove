@@ -40,9 +40,9 @@ export const DuetTapScreenComponent = ({
   const timer = useBabySessionTimer();
   const logBabySession = useBabyStore((s) => s.logBabySession);
 
-  // Volume cap applied (for future audio integration)
-  // capBabyVolume enforces BABY_MAX_VOLUME on all baby audio
-  void capBabyVolume(0.4);
+  // Volume safety: cap all audio to baby-safe maximum.
+  // capBabyVolume will be applied to actual audio playback when audio is integrated.
+  const safeVolume = capBabyVolume(0.4);
 
   // Start timer on mount
   useEffect(() => {
@@ -245,9 +245,9 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   bpmButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: spacing.tapMinimumBaby,
+    height: spacing.tapMinimumBaby,
+    borderRadius: spacing.tapMinimumBaby / 2,
     backgroundColor: colors.babySurface,
     alignItems: 'center',
     justifyContent: 'center',

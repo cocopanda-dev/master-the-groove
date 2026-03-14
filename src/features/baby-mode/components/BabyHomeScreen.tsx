@@ -2,10 +2,10 @@
 import React from 'react';
 import { View, StyleSheet, ScrollView, FlatList } from 'react-native';
 import { Text } from '@design-system';
-import { colors } from '@design-system/tokens';
+import { colors, spacing } from '@design-system/tokens';
 import { StageBanner } from './StageBanner';
 import { ActivityCard } from './ActivityCard';
-import type { BabyActivityCard } from './ActivityCard';
+import type { BabyActivityCard } from '../types';
 import { QuickLaunchButtons } from './QuickLaunchButtons';
 import { useBabyStage } from '../hooks/use-baby-stage';
 

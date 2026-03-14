@@ -2,7 +2,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text, Button } from '@design-system';
-import { colors } from '@design-system/tokens';
+import { colors, spacing } from '@design-system/tokens';
 
 interface TimeLimitScreenProps {
   /** Whether the one-time extension has already been used */
@@ -65,13 +65,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: colors.babyBackground,
-    padding: 32,
-    gap: 24,
+    padding: spacing.xl,
+    gap: spacing.lg,
     zIndex: 100,
   },
   buttonGroup: {
-    gap: 16,
-    marginTop: 16,
+    gap: spacing.md,
+    marginTop: spacing.md,
     width: '100%',
     maxWidth: 300,
   },

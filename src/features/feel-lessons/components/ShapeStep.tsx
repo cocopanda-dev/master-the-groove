@@ -4,6 +4,7 @@ import { View, StyleSheet, ScrollView } from 'react-native';
 import { Text } from '@design-system';
 import { colors, spacing } from '@design-system/tokens';
 import { useAudioStore } from '@data-access/stores/use-audio-store';
+import { useShallow } from 'zustand/shallow';
 import { RadialVisualizer } from '@features/core-player';
 import type { LessonStep } from '@types';
 
@@ -12,7 +13,15 @@ interface ShapeStepProps {
 }
 
 export const ShapeStep = ({ step }: ShapeStepProps) => {
-  const { setRatio, setBpm, setStereoSplit, play, stop } = useAudioStore();
+  const { setRatio, setBpm, setStereoSplit, play, stop } = useAudioStore(
+    useShallow((s) => ({
+      setRatio: s.setRatio,
+      setBpm: s.setBpm,
+      setStereoSplit: s.setStereoSplit,
+      play: s.play,
+      stop: s.stop,
+    })),
+  );
   const audio = step.audioConfig;
 
   useEffect(() => {

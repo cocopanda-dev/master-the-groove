@@ -4,6 +4,7 @@ import { View, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { Text, Button } from '@design-system';
 import { colors, spacing, borderRadius } from '@design-system/tokens';
 import { useLessonStore } from '@data-access/stores';
+import { useShallow } from 'zustand/shallow';
 import { useRouter } from 'expo-router';
 import type { FeelState } from '@types';
 import { FEEL_STATE_OPTIONS } from '../constants';
@@ -14,7 +15,9 @@ interface LessonCompleteProps {
 }
 
 export const LessonComplete = ({ polyrhythmId, lessonTitle }: LessonCompleteProps) => {
-  const { completeLesson, awardFeelBadge } = useLessonStore();
+  const { completeLesson, awardFeelBadge } = useLessonStore(
+    useShallow((s) => ({ completeLesson: s.completeLesson, awardFeelBadge: s.awardFeelBadge })),
+  );
   const router = useRouter();
   const [selectedFeelState, setSelectedFeelState] = useState<FeelState | null>(null);
 

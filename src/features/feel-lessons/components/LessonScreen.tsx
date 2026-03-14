@@ -4,6 +4,7 @@ import { View, StyleSheet, SafeAreaView } from 'react-native';
 import { Text } from '@design-system';
 import { colors, spacing } from '@design-system/tokens';
 import { useLessonStore } from '@data-access/stores';
+import { useShallow } from 'zustand/shallow';
 import { useLessonData } from '../hooks/use-lesson-data';
 import { useLessonEngine } from '../hooks/use-lesson-engine';
 import { STEP_TYPE_LABELS, TOTAL_LESSON_STEPS } from '../constants';
@@ -24,8 +25,9 @@ interface LessonScreenProps {
 
 export const LessonScreen = ({ polyrhythmId }: LessonScreenProps) => {
   const lessonData = useLessonData(polyrhythmId);
-  const startLesson = useLessonStore((s) => s.startLesson);
-  const advanceStep = useLessonStore((s) => s.advanceStep);
+  const { startLesson, advanceStep } = useLessonStore(
+    useShallow((s) => ({ startLesson: s.startLesson, advanceStep: s.advanceStep })),
+  );
 
   const steps = lessonData?.steps ?? [];
   const engine = useLessonEngine(steps);

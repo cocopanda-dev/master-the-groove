@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Pressable, Animated, Dimensions } from 'react-native';
 import { Text } from '@design-system';
-import { colors, spacing } from '@design-system/tokens';
+import { borderRadius, colors, spacing } from '@design-system/tokens';
 import { useBabyStore } from '@data-access/stores';
 import { VISUALIZER_BPM_MIN, VISUALIZER_BPM_MAX, capBabyVolume } from '../constants';
 import { useBabySessionTimer } from '../hooks/use-baby-session-timer';
@@ -59,9 +59,9 @@ export const BabyVisualizerScreenComponent = ({
   const timer = useBabySessionTimer();
   const logBabySession = useBabyStore((s) => s.logBabySession);
 
-  // Volume cap applied (for future audio integration)
-  // capBabyVolume enforces BABY_MAX_VOLUME on all baby audio
-  void capBabyVolume(0.3);
+  // Volume safety: cap all audio to baby-safe maximum.
+  // capBabyVolume will be applied to actual audio playback when audio is integrated.
+  const safeVolume = capBabyVolume(0.3);
 
   // Start timer on mount
   useEffect(() => {
@@ -191,6 +191,11 @@ export const BabyVisualizerScreenComponent = ({
     return colors.babyVisualizerColors[idx] ?? colors.babyPrimary;
   };
 
+  const getShapeBorderRadius = (shape: Shape): number => {
+    if (shape.type === 'square') return borderRadius.md;
+    return shape.size / 2;
+  };
+
   return (
     <View style={styles.container} testID="baby-visualizer-screen">
       {/* Close button */}
@@ -233,9 +238,7 @@ export const BabyVisualizerScreenComponent = ({
               width: shape.size,
               height: shape.size,
               backgroundColor: getShapeColor(shape),
-              borderRadius: shape.type === 'circle' ? shape.size / 2
-                : shape.type === 'square' ? 8
-                : shape.size / 2,
+              borderRadius: getShapeBorderRadius(shape),
               transform: [
                 { scale: shape.scale },
                 { translateX: shape.translateX },
@@ -286,16 +289,16 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     left: 0,
-    width: 60,
-    height: 60,
+    width: spacing.tapMinimumBaby,
+    height: spacing.tapMinimumBaby,
     zIndex: 5,
   },
   hiddenBpmUp: {
     position: 'absolute',
     top: 0,
-    right: 60,
-    width: 60,
-    height: 60,
+    right: spacing.tapMinimumBaby,
+    width: spacing.tapMinimumBaby,
+    height: spacing.tapMinimumBaby,
     zIndex: 5,
   },
   shapeBase: {

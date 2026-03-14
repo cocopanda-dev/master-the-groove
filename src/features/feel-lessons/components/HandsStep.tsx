@@ -2,8 +2,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { Text } from '@design-system';
-import { colors, spacing, borderRadius, fontSize } from '@design-system/tokens';
+import { colors, spacing, borderRadius } from '@design-system/tokens';
 import { useAudioStore } from '@data-access/stores/use-audio-store';
+import { useShallow } from 'zustand/shallow';
 import type { LessonStep } from '@types';
 
 interface HandsStepProps {
@@ -15,7 +16,15 @@ interface HandsStepProps {
 const TAPS_TO_COMPLETE = 12;
 
 export const HandsStep = ({ step, onComplete, isCompleted }: HandsStepProps) => {
-  const { setRatio, setBpm, setStereoSplit, play, stop } = useAudioStore();
+  const { setRatio, setBpm, setStereoSplit, play, stop } = useAudioStore(
+    useShallow((s) => ({
+      setRatio: s.setRatio,
+      setBpm: s.setBpm,
+      setStereoSplit: s.setStereoSplit,
+      play: s.play,
+      stop: s.stop,
+    })),
+  );
   const audio = step.audioConfig;
 
   const config = step.interactionConfig as

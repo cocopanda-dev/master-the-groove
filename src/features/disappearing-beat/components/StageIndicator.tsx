@@ -4,6 +4,7 @@ import { View, StyleSheet } from 'react-native';
 import { Text } from '@design-system';
 import { colors } from '@design-system/tokens/colors';
 import { spacing } from '@design-system/tokens/spacing';
+import { borderRadius } from '@design-system/tokens/border-radius';
 import type { DisappearingBeatStage } from '../types';
 import { STAGE_LABELS } from '../constants';
 
@@ -47,6 +48,8 @@ export const StageIndicator = ({ stage, barCount, barsPerStage }: StageIndicator
   );
 };
 
+const DOT_SIZE = spacing.sm + spacing.xxs;
+
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
@@ -58,9 +61,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: DOT_SIZE,
+    height: DOT_SIZE,
+    borderRadius: borderRadius.full,
     backgroundColor: colors.surfaceLight,
   },
   dotCompleted: {

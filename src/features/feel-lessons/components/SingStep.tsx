@@ -4,6 +4,7 @@ import { View, StyleSheet, ScrollView } from 'react-native';
 import { Text, Button } from '@design-system';
 import { colors, spacing } from '@design-system/tokens';
 import { useAudioStore } from '@data-access/stores/use-audio-store';
+import { useShallow } from 'zustand/shallow';
 import type { LessonStep } from '@types';
 import { ExtensionSlot } from './ExtensionSlot';
 
@@ -15,7 +16,17 @@ interface SingStepProps {
 
 export const SingStep = ({ step, onComplete, isCompleted }: SingStepProps) => {
   const { setRatio, setBpm, setVolumeA, setVolumeB, setStereoSplit, play, stop } =
-    useAudioStore();
+    useAudioStore(
+      useShallow((s) => ({
+        setRatio: s.setRatio,
+        setBpm: s.setBpm,
+        setVolumeA: s.setVolumeA,
+        setVolumeB: s.setVolumeB,
+        setStereoSplit: s.setStereoSplit,
+        play: s.play,
+        stop: s.stop,
+      })),
+    );
   const audio = step.audioConfig;
 
   useEffect(() => {

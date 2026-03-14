@@ -5,6 +5,7 @@ import { Text } from '@design-system';
 import { colors, spacing } from '@design-system/tokens';
 import { useBabyStore } from '@data-access/stores';
 import type { BabyActivityCard } from '../types';
+import { capBabyVolume } from '../constants';
 import { useBabySessionTimer } from '../hooks/use-baby-session-timer';
 import { BabyResponsePrompt } from './BabyResponsePrompt';
 
@@ -26,6 +27,10 @@ export const ActivityDetailView = ({
   const activityStartRef = useRef<number>(0);
   const timer = useBabySessionTimer();
   const logBabySession = useBabyStore((s) => s.logBabySession);
+
+  // Volume safety: cap all audio to baby-safe maximum.
+  // capBabyVolume will be applied to actual audio playback when audio is integrated.
+  const safeVolume = capBabyVolume(0.4);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);

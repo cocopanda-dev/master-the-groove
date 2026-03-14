@@ -1,5 +1,5 @@
 // src/features/baby-mode/components/ParentalGate.tsx
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { Text } from '@design-system';
 import { colors, spacing } from '@design-system/tokens';
@@ -17,6 +17,16 @@ export const ParentalGate = ({ onPass, onCancel }: ParentalGateProps) => {
   const rightRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const passedRef = useRef(false);
+
+  // Clean up hold timer on unmount to prevent firing onPass after unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, []);
 
   const checkBothHeld = useCallback(() => {
     if (leftRef.current && rightRef.current && !passedRef.current) {

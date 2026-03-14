@@ -91,7 +91,7 @@ export const calculateDrift = (
       expectedTimestamp: expected,
       tapTimestamp: null,
       driftMs: null,
-      zone: 'missed' as const,
+      zone: 'missed',
     };
   });
 

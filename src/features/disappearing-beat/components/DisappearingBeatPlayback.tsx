@@ -53,13 +53,6 @@ export const DisappearingBeatPlayback = ({
     prevStageRef.current = stage;
   }, [stage, computeDrift, onDriftResult]);
 
-  const handleTap = useCallback(
-    (timestamp: number) => {
-      recordTap(timestamp);
-    },
-    [recordTap],
-  );
-
   const handleStop = useCallback(() => {
     // Compute drift if we're in stage 3
     if (stage === 'stage3') {
@@ -85,7 +78,7 @@ export const DisappearingBeatPlayback = ({
 
       <View style={styles.centerSection}>
         {stage === 'stage3' ? (
-          <TapTarget stage={stage} onTap={handleTap} />
+          <TapTarget stage={stage} onTap={recordTap} />
         ) : (
           <View style={styles.placeholder}>
             <Text variant="body" color={colors.textSecondary} align="center">

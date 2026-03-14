@@ -2,8 +2,9 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Text } from '@design-system';
-import { colors, spacing, borderRadius, fontSize } from '@design-system/tokens';
+import { colors, spacing, borderRadius } from '@design-system/tokens';
 import { useAudioStore } from '@data-access/stores/use-audio-store';
+import { useShallow } from 'zustand/shallow';
 import type { LessonStep } from '@types';
 
 interface BodyStepProps {
@@ -13,7 +14,15 @@ interface BodyStepProps {
 }
 
 export const BodyStep = ({ step, onComplete, isCompleted }: BodyStepProps) => {
-  const { setRatio, setBpm, setStereoSplit, play, stop } = useAudioStore();
+  const { setRatio, setBpm, setStereoSplit, play, stop } = useAudioStore(
+    useShallow((s) => ({
+      setRatio: s.setRatio,
+      setBpm: s.setBpm,
+      setStereoSplit: s.setStereoSplit,
+      play: s.play,
+      stop: s.stop,
+    })),
+  );
   const audio = step.audioConfig;
 
   const durationSeconds =
@@ -66,6 +75,13 @@ export const BodyStep = ({ step, onComplete, isCompleted }: BodyStepProps) => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  let timerColor = colors.textPrimary;
+  if (isCompleted) {
+    timerColor = colors.success;
+  } else if (isRunning) {
+    timerColor = colors.primaryLight;
+  }
+
   return (
     <ScrollView
       style={styles.container}
@@ -84,13 +100,7 @@ export const BodyStep = ({ step, onComplete, isCompleted }: BodyStepProps) => {
       <View style={styles.timerContainer}>
         <Text
           variant="h1"
-          color={
-            isCompleted
-              ? colors.success
-              : isRunning
-                ? colors.primaryLight
-                : colors.textPrimary
-          }
+          color={timerColor}
           align="center"
         >
           {isCompleted ? 'Done!' : formatTime(secondsLeft)}

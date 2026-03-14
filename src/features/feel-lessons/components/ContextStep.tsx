@@ -1,6 +1,6 @@
 // src/features/feel-lessons/components/ContextStep.tsx
 import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
 import { Text } from '@design-system';
 import { colors, spacing } from '@design-system/tokens';
 import type { LessonStep } from '@types';

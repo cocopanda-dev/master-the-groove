@@ -1,5 +1,6 @@
 // src/features/disappearing-beat/hooks/use-disappearing-beat-engine.ts
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useShallow } from 'zustand/shallow';
 import { useAudioStore } from '@data-access/stores';
 import type { DisappearingBeatStage, StageConfig, DisappearingBeatResult } from '../types';
 import {
@@ -59,16 +60,31 @@ export const useDisappearingBeatEngine = (
   const stateRef = useRef(state);
   stateRef.current = state;
 
-  const audioPlay = useAudioStore((s) => s.play);
-  const audioStop = useAudioStore((s) => s.stop);
-  const audioSetRatio = useAudioStore((s) => s.setRatio);
-  const audioSetBpm = useAudioStore((s) => s.setBpm);
-  const audioFadeLayer = useAudioStore((s) => s.fadeLayer);
-  const audioMuteAll = useAudioStore((s) => s.muteAll);
-  const audioUnmuteAll = useAudioStore((s) => s.unmuteAll);
-  const audioSetVolumeA = useAudioStore((s) => s.setVolumeA);
-  const audioSetVolumeB = useAudioStore((s) => s.setVolumeB);
-  const audioOnCycleComplete = useAudioStore((s) => s.onCycleComplete);
+  const {
+    play: audioPlay,
+    stop: audioStop,
+    setRatio: audioSetRatio,
+    setBpm: audioSetBpm,
+    fadeLayer: audioFadeLayer,
+    muteAll: audioMuteAll,
+    unmuteAll: audioUnmuteAll,
+    setVolumeA: audioSetVolumeA,
+    setVolumeB: audioSetVolumeB,
+    onCycleComplete: audioOnCycleComplete,
+  } = useAudioStore(
+    useShallow((s) => ({
+      play: s.play,
+      stop: s.stop,
+      setRatio: s.setRatio,
+      setBpm: s.setBpm,
+      fadeLayer: s.fadeLayer,
+      muteAll: s.muteAll,
+      unmuteAll: s.unmuteAll,
+      setVolumeA: s.setVolumeA,
+      setVolumeB: s.setVolumeB,
+      onCycleComplete: s.onCycleComplete,
+    })),
+  );
 
   const completeSession = useCallback(() => {
     const cfg = configRef.current;

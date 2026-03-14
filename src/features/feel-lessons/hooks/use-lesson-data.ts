@@ -18,9 +18,5 @@ const LESSON_REGISTRY: Record<string, LessonData> = {
  * Returns the LessonData or null if the lesson is not found.
  */
 export const useLessonData = (polyrhythmId: string): LessonData | null => {
-  return useMemo(() => {
-    const data = LESSON_REGISTRY[polyrhythmId];
-    if (!data) return null;
-    return data;
-  }, [polyrhythmId]);
+  return useMemo(() => LESSON_REGISTRY[polyrhythmId] ?? null, [polyrhythmId]);
 };
