@@ -1,7 +1,5 @@
 import '@testing-library/jest-native/extend-expect';
 
-jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
-
 // Reanimated mock
 jest.mock('react-native-reanimated', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
