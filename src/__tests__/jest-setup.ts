@@ -1,5 +1,9 @@
 import '@testing-library/jest-native/extend-expect';
 import './mocks/expo-av';
+import './mocks/async-storage';
+import './mocks/expo-secure-store';
+import './mocks/netinfo';
+import './mocks/supabase';
 
 // Reanimated mock
 jest.mock('react-native-reanimated', () => {
