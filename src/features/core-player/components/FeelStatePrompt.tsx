@@ -43,12 +43,12 @@ export interface FeelStatePromptProps {
   onSkip: () => void;
 }
 
-export function FeelStatePrompt({
+export const FeelStatePrompt = ({
   visible,
   sessionDuration,
   onSelect,
   onSkip,
-}: FeelStatePromptProps) {
+}: FeelStatePromptProps) => {
   const minutes = Math.floor(sessionDuration / 60);
   const seconds = sessionDuration % 60;
   const durationLabel =
@@ -98,7 +98,7 @@ export function FeelStatePrompt({
       </View>
     </Modal>
   );
-}
+};
 
 const styles = StyleSheet.create({
   backdrop: {

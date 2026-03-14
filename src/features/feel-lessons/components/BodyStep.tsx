@@ -13,7 +13,7 @@ export interface BodyStepProps {
   readonly isCompleted: boolean;
 }
 
-export function BodyStep({ step, onComplete, isCompleted }: BodyStepProps) {
+export const BodyStep = ({ step, onComplete, isCompleted }: BodyStepProps) => {
   const { setRatio, setBpm, setStereoSplit, play, stop } = useAudioStore(
     useShallow((s) => ({
       setRatio: s.setRatio,
@@ -121,7 +121,7 @@ export function BodyStep({ step, onComplete, isCompleted }: BodyStepProps) {
       ) : null}
     </ScrollView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {

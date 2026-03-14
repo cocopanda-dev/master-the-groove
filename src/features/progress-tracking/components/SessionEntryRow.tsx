@@ -16,7 +16,7 @@ export interface SessionEntryRowProps {
  * polyrhythm badge, mode icon, duration, BPM range,
  * disappearing beat stage (conditional), feel state dot, timestamp.
  */
-export function SessionEntryRow({ session, testID }: SessionEntryRowProps) {
+export const SessionEntryRow = ({ session, testID }: SessionEntryRowProps) => {
   const modeIcon = SESSION_MODE_ICONS[session.mode] ?? 'play-circle';
   const bpmRange =
     session.bpmStart === session.bpmEnd
@@ -76,7 +76,7 @@ export function SessionEntryRow({ session, testID }: SessionEntryRowProps) {
       </View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   row: {
