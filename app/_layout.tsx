@@ -50,18 +50,8 @@ const RootLayout = () => {
   const [appIsReady, setAppIsReady] = useState(false);
 
   useEffect(() => {
-    const prepare = async () => {
-      try {
-        await Promise.all([]);
-      } catch (err) {
-        console.warn('Error during app preparation:', err);
-      } finally {
-        setAppIsReady(true);
-        SplashScreen.hideAsync();
-      }
-    };
-
-    prepare();
+    setAppIsReady(true);
+    SplashScreen.hideAsync();
   }, []);
 
   if (!appIsReady) {
@@ -70,12 +60,12 @@ const RootLayout = () => {
 
   return (
     <ThemeProvider>
+      <StatusBar style="light" />
       <GestureProvider>
         <SafeAreaProvider>
           <BottomSheetModalProvider>
             <LocalizationProvider>
               <ErrorBoundary>
-                <StatusBar style="light" />
                 <RootLayoutNav />
               </ErrorBoundary>
             </LocalizationProvider>

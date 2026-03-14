@@ -124,7 +124,7 @@ export const useSessionStore = create<SessionState & SessionActions & SessionSel
         const currentDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
         if (!dateSet.has(todayStr)) {
           currentDate.setDate(currentDate.getDate() - 1);
-          const yesterdayStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
+          const yesterdayStr = toLocalDateString(currentDate.toISOString());
           if (!dateSet.has(yesterdayStr)) {
             return 0;
           }
@@ -132,7 +132,7 @@ export const useSessionStore = create<SessionState & SessionActions & SessionSel
 
         let streak = 0;
         while (true) {
-          const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
+          const dateStr = toLocalDateString(currentDate.toISOString());
           if (dateSet.has(dateStr)) {
             streak++;
             currentDate.setDate(currentDate.getDate() - 1);
