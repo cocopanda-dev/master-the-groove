@@ -1,120 +1,95 @@
 // src/features/baby-mode/components/BabyResponsePrompt.tsx
 import React from 'react';
-import { View, StyleSheet, Pressable, Modal } from 'react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
 import { Text } from '@design-system';
-import { colors } from '@design-system/tokens';
+import { colors, spacing } from '@design-system/tokens';
 
-type BabyResponse = 'calm' | 'excited' | 'disengaged';
+type BabyResponse = 'calm' | 'excited' | 'disengaged' | null;
 
 interface BabyResponsePromptProps {
-  /** Whether the prompt is visible */
-  readonly visible: boolean;
-  /** Baby's name to display in the prompt */
   readonly babyName: string;
-  /** Called with the selected response */
-  readonly onSelect: (response: BabyResponse) => void;
-  /** Called when the prompt is dismissed without selection */
-  readonly onDismiss: () => void;
+  readonly onResponse: (response: BabyResponse) => void;
 }
 
-const RESPONSE_OPTIONS: ReadonlyArray<{
-  value: BabyResponse;
-  label: string;
-  emoji: string;
-  color: string;
-}> = [
-  { value: 'calm', label: 'Calm', emoji: '\u{1F60C}', color: '#A7F3D0' },
-  { value: 'excited', label: 'Excited', emoji: '\u{1F929}', color: '#FDE68A' },
-  { value: 'disengaged', label: 'Disengaged', emoji: '\u{1F634}', color: '#E5E7EB' },
+const RESPONSE_OPTIONS: readonly { label: string; value: BabyResponse; emoji: string }[] = [
+  { label: 'Calm', value: 'calm', emoji: '(calm)' },
+  { label: 'Excited', value: 'excited', emoji: '(happy)' },
+  { label: 'Disengaged', value: 'disengaged', emoji: '(sleepy)' },
 ];
 
-/**
- * Post-activity prompt asking "How did [baby name] respond?"
- * Presents three large tappable cards: Calm, Excited, Disengaged.
- * Dismissible without selection (records null).
- */
-const BabyResponsePrompt = ({
-  visible,
-  babyName,
-  onSelect,
-  onDismiss,
-}: BabyResponsePromptProps) => (
-  <Modal
-    visible={visible}
-    transparent
-    animationType="slide"
-    onRequestClose={onDismiss}
-  >
-    <Pressable
-      style={styles.overlay}
-      onPress={onDismiss}
-      accessibilityLabel="Dismiss response prompt"
-    >
-      <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
-        <Text variant="h3" color={colors.babyTextPrimary} align="center">
-          How did {babyName} respond?
+export const BabyResponsePrompt = ({ babyName, onResponse }: BabyResponsePromptProps) => (
+  <View style={styles.container} testID="baby-response-prompt">
+    <View style={styles.content}>
+      <Text variant="h3" color={colors.babyTextPrimary} align="center">
+        How did {babyName} respond?
+      </Text>
+      <View style={styles.optionsRow}>
+        {RESPONSE_OPTIONS.map((option) => (
+          <Pressable
+            key={option.value}
+            onPress={() => onResponse(option.value)}
+            style={styles.optionButton}
+            accessibilityLabel={option.label}
+            accessibilityRole="button"
+            testID={`response-${option.value}`}
+          >
+            <Text variant="body" color={colors.babyTextSecondary}>
+              {option.emoji}
+            </Text>
+            <Text variant="bodySmall" color={colors.babyTextPrimary}>
+              {option.label}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+      <Pressable
+        onPress={() => onResponse(null)}
+        style={styles.skipButton}
+        accessibilityLabel="Skip"
+        accessibilityRole="button"
+        testID="response-skip"
+      >
+        <Text variant="bodySmall" color={colors.babyTextSecondary}>
+          Skip
         </Text>
-        <View style={styles.optionsRow}>
-          {RESPONSE_OPTIONS.map((opt) => (
-            <Pressable
-              key={opt.value}
-              testID={`response-${opt.value}`}
-              accessibilityLabel={opt.label}
-              accessibilityRole="button"
-              onPress={() => onSelect(opt.value)}
-              style={({ pressed }) => [
-                styles.optionCard,
-                { backgroundColor: opt.color },
-                pressed && styles.optionPressed,
-              ]}
-            >
-              <Text variant="h2" align="center">
-                {opt.emoji}
-              </Text>
-              <Text variant="body" color={colors.babyTextPrimary} align="center">
-                {opt.label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
       </Pressable>
-    </Pressable>
-  </Modal>
+    </View>
+  </View>
 );
 
 const styles = StyleSheet.create({
-  overlay: {
+  container: {
     flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: colors.babyBackground,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  sheet: {
+  content: {
     backgroundColor: colors.babySurface,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    paddingBottom: 48,
-    gap: 20,
+    borderRadius: 16,
+    padding: spacing.xl,
+    alignItems: 'center',
+    gap: spacing.lg,
+    width: '85%',
+    maxWidth: 360,
   },
   optionsRow: {
     flexDirection: 'row',
+    gap: spacing.md,
     justifyContent: 'center',
-    gap: 12,
   },
-  optionCard: {
-    flex: 1,
-    borderRadius: 16,
-    padding: 16,
+  optionButton: {
+    backgroundColor: colors.babyBackground,
+    borderRadius: 12,
+    padding: spacing.md,
     alignItems: 'center',
+    gap: spacing.xs,
+    minWidth: 80,
+    minHeight: 80,
     justifyContent: 'center',
-    gap: 8,
-    minHeight: 100,
   },
-  optionPressed: {
-    opacity: 0.8,
-    transform: [{ scale: 0.95 }],
+  skipButton: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
   },
 });
-
-export { BabyResponsePrompt };
-export type { BabyResponsePromptProps, BabyResponse };

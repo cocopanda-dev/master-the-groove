@@ -1,161 +1,143 @@
 // src/features/baby-mode/__tests__/use-baby-session-timer.test.ts
 import { renderHook, act } from '@testing-library/react-native';
 import { useBabySessionTimer } from '../hooks/use-baby-session-timer';
-
-// Use fake timers for deterministic control
-beforeEach(() => {
-  jest.useFakeTimers();
-});
-
-afterEach(() => {
-  jest.useRealTimers();
-});
+import { SESSION_LIMIT_S, SESSION_WARNING_S, SESSION_EXTENSION_S } from '../constants';
 
 describe('useBabySessionTimer', () => {
-  it('starts at elapsed 0', () => {
-    const { result } = renderHook(() => useBabySessionTimer());
-    expect(result.current.elapsed).toBe(0);
-    expect(result.current.isWarning).toBe(false);
-    expect(result.current.isTimeLimitReached).toBe(false);
-    expect(result.current.hasExtended).toBe(false);
+  beforeEach(() => {
+    jest.useFakeTimers();
   });
 
-  it('increments elapsed each second', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('starts in idle state', () => {
     const { result } = renderHook(() => useBabySessionTimer());
+
+    expect(result.current.status).toBe('idle');
+    expect(result.current.elapsed).toBe(0);
+    expect(result.current.remaining).toBe(SESSION_LIMIT_S);
+  });
+
+  it('transitions to running when started', () => {
+    const { result } = renderHook(() => useBabySessionTimer());
+
+    act(() => {
+      result.current.start();
+    });
+
+    expect(result.current.status).toBe('running');
+  });
+
+  it('increments elapsed time each second', () => {
+    const { result } = renderHook(() => useBabySessionTimer());
+
+    act(() => {
+      result.current.start();
+    });
 
     act(() => {
       jest.advanceTimersByTime(5000);
     });
 
     expect(result.current.elapsed).toBe(5);
+    expect(result.current.remaining).toBe(SESSION_LIMIT_S - 5);
   });
 
-  it('fires onWarning at 150s', () => {
-    const onWarning = jest.fn();
-    renderHook(() => useBabySessionTimer({ onWarning }));
-
-    act(() => {
-      jest.advanceTimersByTime(149_000);
-    });
-    expect(onWarning).not.toHaveBeenCalled();
-
-    act(() => {
-      jest.advanceTimersByTime(1000);
-    });
-    expect(onWarning).toHaveBeenCalledTimes(1);
-  });
-
-  it('sets isWarning to true at 150s', () => {
+  it('shows warning status at warning threshold', () => {
     const { result } = renderHook(() => useBabySessionTimer());
 
     act(() => {
-      jest.advanceTimersByTime(150_000);
+      result.current.start();
     });
-
-    expect(result.current.isWarning).toBe(true);
-  });
-
-  it('fires onTimeLimit at 180s', () => {
-    const onTimeLimit = jest.fn();
-    renderHook(() => useBabySessionTimer({ onTimeLimit }));
 
     act(() => {
-      jest.advanceTimersByTime(179_000);
+      jest.advanceTimersByTime(SESSION_WARNING_S * 1000);
     });
-    expect(onTimeLimit).not.toHaveBeenCalled();
 
-    act(() => {
-      jest.advanceTimersByTime(1000);
-    });
-    expect(onTimeLimit).toHaveBeenCalledTimes(1);
+    expect(result.current.status).toBe('warning');
   });
 
-  it('sets isTimeLimitReached at 180s and stops incrementing', () => {
+  it('expires at session limit', () => {
     const { result } = renderHook(() => useBabySessionTimer());
 
     act(() => {
-      jest.advanceTimersByTime(180_000);
+      result.current.start();
     });
 
-    expect(result.current.isTimeLimitReached).toBe(true);
-    expect(result.current.elapsed).toBe(180);
-
-    // Should not increment further
     act(() => {
-      jest.advanceTimersByTime(5000);
+      jest.advanceTimersByTime(SESSION_LIMIT_S * 1000);
     });
-    expect(result.current.elapsed).toBe(180);
+
+    expect(result.current.status).toBe('expired');
+    expect(result.current.remaining).toBe(0);
   });
 
-  it('extend adds 60s and resumes timer', () => {
-    const onTimeLimit = jest.fn();
-    const { result } = renderHook(() => useBabySessionTimer({ onTimeLimit }));
+  it('extends session by EXTENSION_S seconds', () => {
+    const { result } = renderHook(() => useBabySessionTimer());
 
-    // Reach the limit
     act(() => {
-      jest.advanceTimersByTime(180_000);
+      result.current.start();
     });
-    expect(result.current.isTimeLimitReached).toBe(true);
-    expect(onTimeLimit).toHaveBeenCalledTimes(1);
 
-    // Extend
+    act(() => {
+      jest.advanceTimersByTime(SESSION_WARNING_S * 1000);
+    });
+
+    expect(result.current.status).toBe('warning');
+
     act(() => {
       result.current.extend();
     });
 
     expect(result.current.hasExtended).toBe(true);
-    expect(result.current.isTimeLimitReached).toBe(false);
-
-    // Timer should resume and reach 240s
-    act(() => {
-      jest.advanceTimersByTime(59_000);
-    });
-    expect(result.current.isTimeLimitReached).toBe(false);
-
-    act(() => {
-      jest.advanceTimersByTime(1000);
-    });
-    expect(result.current.isTimeLimitReached).toBe(true);
-    expect(result.current.elapsed).toBe(240);
-    expect(onTimeLimit).toHaveBeenCalledTimes(2);
+    // After extension, the total limit is SESSION_LIMIT_S + SESSION_EXTENSION_S
+    expect(result.current.remaining).toBe(
+      SESSION_LIMIT_S + SESSION_EXTENSION_S - SESSION_WARNING_S,
+    );
+    // With more time, should not yet be expired
+    expect(result.current.status).toBe('running');
   });
 
-  it('extension can only be used once', () => {
+  it('does not allow double extension', () => {
     const { result } = renderHook(() => useBabySessionTimer());
 
-    // Reach the limit
     act(() => {
-      jest.advanceTimersByTime(180_000);
+      result.current.start();
     });
 
-    // First extend works
     act(() => {
       result.current.extend();
     });
+
     expect(result.current.hasExtended).toBe(true);
 
-    // Reach the new limit
-    act(() => {
-      jest.advanceTimersByTime(60_000);
-    });
-    expect(result.current.isTimeLimitReached).toBe(true);
-
-    // Second extend is a no-op
+    // Try extending again - should not change anything
     act(() => {
       result.current.extend();
     });
-    expect(result.current.isTimeLimitReached).toBe(true);
-    expect(result.current.elapsed).toBe(240);
+
+    expect(result.current.hasExtended).toBe(true);
   });
 
-  it('onWarning fires only once', () => {
-    const onWarning = jest.fn();
-    renderHook(() => useBabySessionTimer({ onWarning }));
+  it('resets on stop', () => {
+    const { result } = renderHook(() => useBabySessionTimer());
 
     act(() => {
-      jest.advanceTimersByTime(155_000);
+      result.current.start();
     });
 
-    expect(onWarning).toHaveBeenCalledTimes(1);
+    act(() => {
+      jest.advanceTimersByTime(10000);
+    });
+
+    act(() => {
+      result.current.stop();
+    });
+
+    expect(result.current.status).toBe('idle');
+    expect(result.current.elapsed).toBe(0);
+    expect(result.current.hasExtended).toBe(false);
   });
 });

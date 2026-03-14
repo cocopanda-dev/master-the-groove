@@ -1,230 +1,271 @@
 // src/features/baby-mode/components/BabyVisualizerScreen.tsx
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  Pressable,
-  Animated,
-  Dimensions,
-} from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { View, StyleSheet, Pressable, Animated, Dimensions } from 'react-native';
 import { Text } from '@design-system';
-import { colors } from '@design-system/tokens';
-import { useRouter } from 'expo-router';
-import { useKeepAwakeWhilePlaying } from '@navigation/hooks';
-import { useBabyStore } from '@data-access/stores/use-baby-store';
+import { colors, spacing } from '@design-system/tokens';
+import { useBabyStore } from '@data-access/stores';
+import { VISUALIZER_BPM_MIN, VISUALIZER_BPM_MAX, capBabyVolume } from '../constants';
 import { useBabySessionTimer } from '../hooks/use-baby-session-timer';
-import { TimeLimitScreen } from './TimeLimitScreen';
 import { BabyResponsePrompt } from './BabyResponsePrompt';
-import type { BabyResponse } from './BabyResponsePrompt';
+
+interface BabyVisualizerScreenComponentProps {
+  readonly babyProfileId: string;
+  readonly babyName: string;
+  readonly onClose: () => void;
+}
+
+interface Shape {
+  readonly id: number;
+  readonly type: 'circle' | 'star' | 'square' | 'triangle';
+  readonly colorIndex: number;
+  readonly x: number;
+  readonly y: number;
+  readonly size: number;
+  readonly scale: Animated.Value;
+  readonly translateX: Animated.Value;
+  readonly translateY: Animated.Value;
+}
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-const VISUALIZER_COLORS = colors.babyVisualizerColors;
-const NUM_SHAPES = 5;
-const BEAT_INTERVAL_MS = Math.round(60000 / 70); // 70 BPM default
+const SHAPE_TYPES = ['circle', 'star', 'square', 'triangle'] as const;
 
-interface ShapeConfig {
-  id: number;
-  x: number;
-  y: number;
-  size: number;
-  type: 'circle' | 'square';
-  colorIndex: number;
-}
+const createShapes = (): Shape[] =>
+  Array.from({ length: 4 }, (_, i) => ({
+    id: i,
+    type: SHAPE_TYPES[i % SHAPE_TYPES.length] ?? 'circle',
+    colorIndex: i % colors.babyVisualizerColors.length,
+    x: (SCREEN_WIDTH * (i + 1)) / 5,
+    y: (SCREEN_HEIGHT * ((i % 2) + 1)) / 3,
+    size: 60 + (i * 15),
+    scale: new Animated.Value(1),
+    translateX: new Animated.Value(0),
+    translateY: new Animated.Value(0),
+  }));
 
-/**
- * Generates semi-random non-overlapping shape positions.
- */
-const generateShapes = (): ShapeConfig[] => {
-  const shapes: ShapeConfig[] = [];
-  const padding = 60;
-  const maxAttempts = 50;
+export const BabyVisualizerScreenComponent = ({
+  babyProfileId,
+  babyName,
+  onClose,
+}: BabyVisualizerScreenComponentProps) => {
+  const [bpm, setBpm] = useState(70);
+  const [colorOffset, setColorOffset] = useState(0);
+  const [showResponse, setShowResponse] = useState(false);
+  const shapesRef = useRef<Shape[]>(createShapes());
+  const shapes = shapesRef.current;
+  const startTime = useRef(Date.now());
+  const beatIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  for (let i = 0; i < NUM_SHAPES; i++) {
-    const size = 60 + Math.random() * 60; // 60-120px
-    let x = 0;
-    let y = 0;
-    let attempts = 0;
-    let valid = false;
+  const timer = useBabySessionTimer();
+  const logBabySession = useBabyStore((s) => s.logBabySession);
 
-    while (!valid && attempts < maxAttempts) {
-      x = padding + Math.random() * (SCREEN_WIDTH - size - padding * 2);
-      y = padding + 80 + Math.random() * (SCREEN_HEIGHT - size - padding * 2 - 160);
-      valid = shapes.every((s) => {
-        const dist = Math.sqrt((s.x - x) ** 2 + (s.y - y) ** 2);
-        return dist > (s.size + size) / 2 + 20;
-      });
-      attempts++;
-    }
+  // Volume cap applied (for future audio integration)
+  // capBabyVolume enforces BABY_MAX_VOLUME on all baby audio
+  void capBabyVolume(0.3);
 
-    shapes.push({
-      id: i,
-      x,
-      y,
-      size,
-      type: i % 2 === 0 ? 'circle' : 'square',
-      colorIndex: i % VISUALIZER_COLORS.length,
-    });
-  }
-
-  return shapes;
-};
-
-/**
- * Full-screen baby visualizer with geometric shapes that pulse on beat.
- * Uses warm colors and gentle animations designed for infant visual engagement.
- */
-const BabyVisualizerScreen = () => {
-  const router = useRouter();
-  const babyProfile = useBabyStore((state) => state.babyProfile);
-  const logBabySession = useBabyStore((state) => state.logBabySession);
-  const babyName = babyProfile?.babyName || 'Baby';
-
-  useKeepAwakeWhilePlaying({ always: true });
-
-  const startTimeRef = useRef(Date.now());
-  const [showPrompt, setShowPrompt] = useState(false);
-
-  const shapes = useMemo(() => generateShapes(), []);
-  const scaleAnimations = useRef(
-    shapes.map(() => new Animated.Value(1)),
-  ).current;
-  const [colorIndices, setColorIndices] = useState(
-    shapes.map((s) => s.colorIndex),
-  );
-
-  const {
-    isTimeLimitReached,
-    hasExtended,
-    extend,
-  } = useBabySessionTimer();
-
-  // Beat-synced pulsing animation
+  // Start timer on mount
   useEffect(() => {
-    const interval = setInterval(() => {
-      scaleAnimations.forEach((anim) => {
+    startTime.current = Date.now();
+    timer.start();
+    return () => {
+      timer.stop();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Beat-synced animation
+  useEffect(() => {
+    const interval = (60 / bpm) * 1000;
+    beatIntervalRef.current = setInterval(() => {
+      // Cycle colors on beat
+      setColorOffset((prev) => (prev + 1) % colors.babyVisualizerColors.length);
+
+      // Scale animation: 1.0 -> 1.3 -> 1.0
+      for (const shape of shapes) {
         Animated.sequence([
-          Animated.timing(anim, {
+          Animated.timing(shape.scale, {
             toValue: 1.3,
-            duration: 150,
+            duration: interval * 0.2,
             useNativeDriver: true,
           }),
-          Animated.timing(anim, {
-            toValue: 1,
-            duration: 250,
+          Animated.timing(shape.scale, {
+            toValue: 1.0,
+            duration: interval * 0.3,
             useNativeDriver: true,
           }),
         ]).start();
-      });
-    }, BEAT_INTERVAL_MS);
-
-    return () => clearInterval(interval);
-  }, [scaleAnimations]);
-
-  // Color cycling: shift colors every 5 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setColorIndices((prev) =>
-        prev.map((ci) => (ci + 1) % VISUALIZER_COLORS.length),
-      );
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleEnd = useCallback(() => {
-    setShowPrompt(true);
-  }, []);
-
-  const handleResponseSelect = useCallback(
-    (response: BabyResponse) => {
-      if (babyProfile) {
-        logBabySession({
-          babyProfileId: babyProfile.id,
-          activityType: 'visualizer',
-          duration: Math.round((Date.now() - startTimeRef.current) / 1000),
-          babyResponse: response,
-          completedAt: new Date().toISOString(),
-        });
       }
-      setShowPrompt(false);
-      router.back();
-    },
-    [babyProfile, logBabySession, router],
-  );
+    }, interval);
 
-  const handleDismissPrompt = useCallback(() => {
-    if (babyProfile) {
+    return () => {
+      if (beatIntervalRef.current) {
+        clearInterval(beatIntervalRef.current);
+      }
+    };
+  }, [bpm, shapes]);
+
+  // Gentle float/drift between beats
+  useEffect(() => {
+    const driftAnimation = () => {
+      for (const shape of shapes) {
+        Animated.parallel([
+          Animated.sequence([
+            Animated.timing(shape.translateX, {
+              toValue: (Math.random() - 0.5) * 30,
+              duration: 3000,
+              useNativeDriver: true,
+            }),
+            Animated.timing(shape.translateX, {
+              toValue: 0,
+              duration: 3000,
+              useNativeDriver: true,
+            }),
+          ]),
+          Animated.sequence([
+            Animated.timing(shape.translateY, {
+              toValue: (Math.random() - 0.5) * 30,
+              duration: 3500,
+              useNativeDriver: true,
+            }),
+            Animated.timing(shape.translateY, {
+              toValue: 0,
+              duration: 3500,
+              useNativeDriver: true,
+            }),
+          ]),
+        ]).start(() => driftAnimation());
+      }
+    };
+    driftAnimation();
+
+    return () => {
+      for (const shape of shapes) {
+        shape.translateX.stopAnimation();
+        shape.translateY.stopAnimation();
+      }
+    };
+  }, [shapes]);
+
+  // Hidden BPM control via two-finger gesture (simplified: tap top-left corner)
+  const handleBpmAdjust = useCallback((direction: 'up' | 'down') => {
+    setBpm((b) => {
+      const next = direction === 'up' ? b + 5 : b - 5;
+      return Math.max(VISUALIZER_BPM_MIN, Math.min(VISUALIZER_BPM_MAX, next));
+    });
+  }, []);
+
+  const handleDone = useCallback(() => {
+    timer.stop();
+    setShowResponse(true);
+  }, [timer]);
+
+  const handleResponse = useCallback(
+    (response: 'calm' | 'excited' | 'disengaged' | null) => {
+      const duration = Math.round((Date.now() - startTime.current) / 1000);
       logBabySession({
-        babyProfileId: babyProfile.id,
+        babyProfileId,
         activityType: 'visualizer',
-        duration: Math.round((Date.now() - startTimeRef.current) / 1000),
-        babyResponse: null,
+        duration,
+        babyResponse: response,
         completedAt: new Date().toISOString(),
       });
-    }
-    setShowPrompt(false);
-    router.back();
-  }, [babyProfile, logBabySession, router]);
+      setShowResponse(false);
+      onClose();
+    },
+    [babyProfileId, logBabySession, onClose],
+  );
 
-  if (isTimeLimitReached && !showPrompt) {
-    return (
-      <TimeLimitScreen
-        hasExtended={hasExtended}
-        onExtend={extend}
-        onEnd={handleEnd}
-      />
-    );
+  // Auto-finish when timer expires
+  useEffect(() => {
+    if (timer.status === 'expired') {
+      handleDone();
+    }
+  }, [timer.status, handleDone]);
+
+  if (showResponse) {
+    return <BabyResponsePrompt babyName={babyName} onResponse={handleResponse} />;
   }
 
+  const getShapeColor = (shape: Shape): string => {
+    const idx = (shape.colorIndex + colorOffset) % colors.babyVisualizerColors.length;
+    return colors.babyVisualizerColors[idx] ?? colors.babyPrimary;
+  };
+
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="baby-visualizer-screen">
       {/* Close button */}
       <Pressable
-        testID="visualizer-close"
-        accessibilityLabel="Close Visualizer"
-        accessibilityRole="button"
-        onPress={handleEnd}
+        onPress={handleDone}
         style={styles.closeButton}
+        accessibilityLabel="Close"
+        accessibilityRole="button"
+        testID="visualizer-close"
       >
-        <Text variant="body" color={colors.babyTextSecondary}>
+        <Text variant="h4" color={colors.babyTextSecondary}>
           X
         </Text>
       </Pressable>
 
-      {/* Animated shapes */}
-      {shapes.map((shape, idx) => {
-        const colorIdx = colorIndices[idx] ?? 0;
-        const shapeColor = VISUALIZER_COLORS[colorIdx] ?? VISUALIZER_COLORS[0];
-        const scaleAnim = scaleAnimations[idx];
-
-        return (
-          <Animated.View
-            key={shape.id}
-            testID={`visualizer-shape-${shape.id}`}
-            style={[
-              {
-                position: 'absolute',
-                left: shape.x,
-                top: shape.y,
-                width: shape.size,
-                height: shape.size,
-                backgroundColor: shapeColor,
-                borderRadius:
-                  shape.type === 'circle' ? shape.size / 2 : shape.size * 0.15,
-                transform: [{ scale: scaleAnim as unknown as number }],
-              },
-            ]}
-          />
-        );
-      })}
-
-      <BabyResponsePrompt
-        visible={showPrompt}
-        babyName={babyName}
-        onSelect={handleResponseSelect}
-        onDismiss={handleDismissPrompt}
+      {/* Hidden BPM controls (small tappable areas in corners) */}
+      <Pressable
+        onPress={() => handleBpmAdjust('down')}
+        style={styles.hiddenBpmDown}
+        accessibilityLabel="Decrease BPM"
+        testID="visualizer-bpm-down"
       />
+      <Pressable
+        onPress={() => handleBpmAdjust('up')}
+        style={styles.hiddenBpmUp}
+        accessibilityLabel="Increase BPM"
+        testID="visualizer-bpm-up"
+      />
+
+      {/* Shapes */}
+      {shapes.map((shape) => (
+        <Animated.View
+          key={shape.id}
+          testID={`visualizer-shape-${shape.id}`}
+          style={[
+            styles.shapeBase,
+            {
+              left: shape.x - shape.size / 2,
+              top: shape.y - shape.size / 2,
+              width: shape.size,
+              height: shape.size,
+              backgroundColor: getShapeColor(shape),
+              borderRadius: shape.type === 'circle' ? shape.size / 2
+                : shape.type === 'square' ? 8
+                : shape.size / 2,
+              transform: [
+                { scale: shape.scale },
+                { translateX: shape.translateX },
+                { translateY: shape.translateY },
+              ],
+            },
+            shape.type === 'triangle' && {
+              width: 0,
+              height: 0,
+              backgroundColor: 'transparent',
+              borderLeftWidth: shape.size / 2,
+              borderRightWidth: shape.size / 2,
+              borderBottomWidth: shape.size,
+              borderLeftColor: 'transparent',
+              borderRightColor: 'transparent',
+              borderBottomColor: getShapeColor(shape),
+              borderRadius: 0,
+            },
+          ]}
+        />
+      ))}
+
+      {/* Timer warning */}
+      {timer.status === 'warning' && (
+        <View style={styles.warningBadge}>
+          <Text variant="bodySmall" color={colors.warning}>
+            {timer.remaining}s
+          </Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -236,16 +277,37 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: 'absolute',
-    top: 48,
-    right: 16,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.7)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    top: spacing['2xl'],
+    right: spacing.lg,
     zIndex: 10,
+    padding: spacing.sm,
+  },
+  hiddenBpmDown: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: 60,
+    height: 60,
+    zIndex: 5,
+  },
+  hiddenBpmUp: {
+    position: 'absolute',
+    top: 0,
+    right: 60,
+    width: 60,
+    height: 60,
+    zIndex: 5,
+  },
+  shapeBase: {
+    position: 'absolute',
+  },
+  warningBadge: {
+    position: 'absolute',
+    bottom: spacing.xl,
+    alignSelf: 'center',
+    backgroundColor: colors.babySurface,
+    borderRadius: 12,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
   },
 });
-
-export { BabyVisualizerScreen };

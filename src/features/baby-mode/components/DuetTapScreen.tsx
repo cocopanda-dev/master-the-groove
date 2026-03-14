@@ -1,233 +1,225 @@
 // src/features/baby-mode/components/DuetTapScreen.tsx
-import React, { useCallback, useRef, useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  Pressable,
-  Animated,
-  Dimensions,
-} from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { View, StyleSheet, Pressable } from 'react-native';
 import { Text } from '@design-system';
-import { colors } from '@design-system/tokens';
-import { useRouter } from 'expo-router';
-import { useKeepAwakeWhilePlaying } from '@navigation/hooks';
-import { useBabyStore } from '@data-access/stores/use-baby-store';
+import { colors, spacing } from '@design-system/tokens';
+import { useBabyStore } from '@data-access/stores';
+import {
+  BABY_BPM_DEFAULT,
+  BABY_BPM_MIN,
+  BABY_BPM_MAX,
+  CELEBRATION_WINDOW_MS,
+  capBabyVolume,
+} from '../constants';
 import { useBabySessionTimer } from '../hooks/use-baby-session-timer';
-import { TimeLimitScreen } from './TimeLimitScreen';
 import { BabyResponsePrompt } from './BabyResponsePrompt';
-import type { BabyResponse } from './BabyResponsePrompt';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-interface RippleState {
-  id: number;
-  x: number;
-  y: number;
-  animation: Animated.Value;
+interface DuetTapScreenComponentProps {
+  readonly babyProfileId: string;
+  readonly babyName: string;
+  readonly onClose: () => void;
 }
 
-/**
- * Duet Tap screen with two large tap zones (parent and baby).
- * Features ripple animations on tap, a simple BPM label,
- * and auto-session tracking.
- */
-const DuetTapScreen = () => {
-  const router = useRouter();
-  const babyProfile = useBabyStore((state) => state.babyProfile);
-  const logBabySession = useBabyStore((state) => state.logBabySession);
-  const babyName = babyProfile?.babyName || 'Baby';
+export const DuetTapScreenComponent = ({
+  babyProfileId,
+  babyName,
+  onClose,
+}: DuetTapScreenComponentProps) => {
+  const [bpm, setBpm] = useState(BABY_BPM_DEFAULT);
+  const [parentRipple, setParentRipple] = useState(false);
+  const [babyRipple, setBabyRipple] = useState(false);
+  const [celebration, setCelebration] = useState(false);
+  const [showResponse, setShowResponse] = useState(false);
+  const [beatPulse, setBeatPulse] = useState(false);
 
-  useKeepAwakeWhilePlaying({ always: true });
+  const lastParentTap = useRef(0);
+  const lastBabyTap = useRef(0);
+  const startTime = useRef(Date.now());
+  const beatIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const startTimeRef = useRef(Date.now());
-  const [showPrompt, setShowPrompt] = useState(false);
-  const [ripples, setRipples] = useState<RippleState[]>([]);
-  const rippleIdRef = useRef(0);
-  const [bpm] = useState(80);
+  const timer = useBabySessionTimer();
+  const logBabySession = useBabyStore((s) => s.logBabySession);
 
-  const {
-    elapsed,
-    isWarning,
-    isTimeLimitReached,
-    hasExtended,
-    extend,
-  } = useBabySessionTimer();
+  // Volume cap applied (for future audio integration)
+  // capBabyVolume enforces BABY_MAX_VOLUME on all baby audio
+  void capBabyVolume(0.4);
 
-  const handleEnd = useCallback(() => {
-    setShowPrompt(true);
+  // Start timer on mount
+  useEffect(() => {
+    startTime.current = Date.now();
+    timer.start();
+    return () => {
+      timer.stop();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleResponseSelect = useCallback(
-    (response: BabyResponse) => {
-      if (babyProfile) {
-        logBabySession({
-          babyProfileId: babyProfile.id,
-          activityType: 'duet-tap',
-          duration: Math.round((Date.now() - startTimeRef.current) / 1000),
-          babyResponse: response,
-          completedAt: new Date().toISOString(),
-        });
-      }
-      setShowPrompt(false);
-      router.back();
-    },
-    [babyProfile, logBabySession, router],
-  );
+  // Background beat via setInterval
+  useEffect(() => {
+    const interval = (60 / bpm) * 1000;
+    beatIntervalRef.current = setInterval(() => {
+      setBeatPulse(true);
+      setTimeout(() => setBeatPulse(false), 100);
+    }, interval);
 
-  const handleDismissPrompt = useCallback(() => {
-    if (babyProfile) {
+    return () => {
+      if (beatIntervalRef.current) {
+        clearInterval(beatIntervalRef.current);
+      }
+    };
+  }, [bpm]);
+
+  const checkCelebration = useCallback((parentTime: number, babyTime: number) => {
+    if (Math.abs(parentTime - babyTime) <= CELEBRATION_WINDOW_MS) {
+      setCelebration(true);
+      setTimeout(() => setCelebration(false), 500);
+    }
+  }, []);
+
+  const onParentTap = useCallback(() => {
+    const now = Date.now();
+    lastParentTap.current = now;
+    setParentRipple(true);
+    setTimeout(() => setParentRipple(false), 300);
+    if (lastBabyTap.current > 0) {
+      checkCelebration(now, lastBabyTap.current);
+    }
+  }, [checkCelebration]);
+
+  const onBabyTap = useCallback(() => {
+    const now = Date.now();
+    lastBabyTap.current = now;
+    setBabyRipple(true);
+    setTimeout(() => setBabyRipple(false), 300);
+    if (lastParentTap.current > 0) {
+      checkCelebration(lastParentTap.current, now);
+    }
+  }, [checkCelebration]);
+
+  const handleDone = useCallback(() => {
+    timer.stop();
+    setShowResponse(true);
+  }, [timer]);
+
+  const handleResponse = useCallback(
+    (response: 'calm' | 'excited' | 'disengaged' | null) => {
+      const duration = Math.round((Date.now() - startTime.current) / 1000);
       logBabySession({
-        babyProfileId: babyProfile.id,
+        babyProfileId,
         activityType: 'duet-tap',
-        duration: Math.round((Date.now() - startTimeRef.current) / 1000),
-        babyResponse: null,
+        duration,
+        babyResponse: response,
         completedAt: new Date().toISOString(),
       });
+      setShowResponse(false);
+      onClose();
+    },
+    [babyProfileId, logBabySession, onClose],
+  );
+
+  // Auto-finish when timer expires
+  useEffect(() => {
+    if (timer.status === 'expired') {
+      handleDone();
     }
-    setShowPrompt(false);
-    router.back();
-  }, [babyProfile, logBabySession, router]);
+  }, [timer.status, handleDone]);
 
-  const createRipple = useCallback(
-    (x: number, y: number) => {
-      const id = rippleIdRef.current++;
-      const animation = new Animated.Value(0);
-
-      setRipples((prev) => [...prev, { id, x, y, animation }]);
-
-      Animated.timing(animation, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }).start(() => {
-        setRipples((prev) => prev.filter((r) => r.id !== id));
-      });
-    },
-    [],
-  );
-
-  const handleTapZone = useCallback(
-    (event: { nativeEvent: { locationX: number; locationY: number } }, offsetX: number) => {
-      const { locationX, locationY } = event.nativeEvent;
-      createRipple(locationX + offsetX, locationY);
-    },
-    [createRipple],
-  );
-
-  const formatTime = (seconds: number): string => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, '0')}`;
-  };
-
-  if (isTimeLimitReached && !showPrompt) {
-    return (
-      <TimeLimitScreen
-        hasExtended={hasExtended}
-        onExtend={extend}
-        onEnd={handleEnd}
-      />
-    );
+  if (showResponse) {
+    return <BabyResponsePrompt babyName={babyName} onResponse={handleResponse} />;
   }
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="duet-tap-screen">
       {/* Header */}
       <View style={styles.header}>
         <Pressable
-          testID="duet-tap-close"
-          accessibilityLabel="Close Duet Tap"
-          accessibilityRole="button"
-          onPress={handleEnd}
+          onPress={handleDone}
           style={styles.closeButton}
+          accessibilityLabel="Close"
+          accessibilityRole="button"
+          testID="duet-tap-close"
         >
-          <Text variant="h3" color={colors.babyTextPrimary}>
+          <Text variant="h4" color={colors.babyTextSecondary}>
             X
           </Text>
         </Pressable>
-        <View style={styles.headerCenter}>
-          <Text variant="body" color={colors.babyTextSecondary}>
+
+        <View style={styles.bpmControl}>
+          <Pressable
+            onPress={() => setBpm((b) => Math.max(BABY_BPM_MIN, b - 5))}
+            style={styles.bpmButton}
+            accessibilityLabel="Decrease BPM"
+            accessibilityRole="button"
+            testID="bpm-decrease"
+          >
+            <Text variant="body" color={colors.babyTextPrimary}>-</Text>
+          </Pressable>
+          <Text variant="body" color={colors.babyTextPrimary} testID="bpm-display">
             {bpm} BPM
           </Text>
-          <Text
-            variant="bodySmall"
-            color={isWarning ? colors.error : colors.babyTextSecondary}
+          <Pressable
+            onPress={() => setBpm((b) => Math.min(BABY_BPM_MAX, b + 5))}
+            style={styles.bpmButton}
+            accessibilityLabel="Increase BPM"
+            accessibilityRole="button"
+            testID="bpm-increase"
           >
-            {formatTime(elapsed)}
-          </Text>
+            <Text variant="body" color={colors.babyTextPrimary}>+</Text>
+          </Pressable>
         </View>
-        <View style={styles.closeButton} />
+
+        {timer.status === 'warning' && (
+          <Text variant="bodySmall" color={colors.warning}>
+            {timer.remaining}s remaining
+          </Text>
+        )}
       </View>
 
-      {/* Tap Zones */}
-      <View style={styles.zonesContainer}>
-        <Pressable
-          testID="tap-zone-parent"
-          accessibilityLabel="Parent tap zone"
-          accessibilityRole="button"
-          onPress={(e) => handleTapZone(e, 0)}
-          style={styles.zoneParent}
-        >
-          <Text variant="h2" color="#FFFFFF" align="center">
-            You
-          </Text>
-        </Pressable>
-
-        <Pressable
-          testID="tap-zone-baby"
-          accessibilityLabel={`${babyName} tap zone`}
-          accessibilityRole="button"
-          onPress={(e) => handleTapZone(e, SCREEN_WIDTH / 2)}
-          style={styles.zoneBaby}
-        >
-          <Text variant="h2" color="#FFFFFF" align="center">
-            {babyName}
-          </Text>
-        </Pressable>
-      </View>
-
-      {/* Ripple animations */}
-      {ripples.map((ripple) => {
-        const scale = ripple.animation.interpolate({
-          inputRange: [0, 1],
-          outputRange: [0.3, 2],
-        });
-        const opacity = ripple.animation.interpolate({
-          inputRange: [0, 1],
-          outputRange: [0.6, 0],
-        });
-        return (
-          <Animated.View
-            key={ripple.id}
-            pointerEvents="none"
-            style={[
-              styles.ripple,
-              {
-                left: ripple.x - 40,
-                top: ripple.y + 60,
-                transform: [{ scale }],
-                opacity,
-              },
-            ]}
-          />
-        );
-      })}
-
-      {/* Warning indicator */}
-      {isWarning && (
-        <View style={styles.warningBanner} testID="warning-banner">
-          <Text variant="bodySmall" color={colors.error} align="center">
-            Almost done!
+      {/* Celebration overlay */}
+      {celebration && (
+        <View style={styles.celebrationOverlay} testID="celebration-burst">
+          <Text variant="h2" color={colors.babyCelebration}>
+            Great teamwork!
           </Text>
         </View>
       )}
 
-      <BabyResponsePrompt
-        visible={showPrompt}
-        babyName={babyName}
-        onSelect={handleResponseSelect}
-        onDismiss={handleDismissPrompt}
-      />
+      {/* Tap zones */}
+      <View style={styles.tapZones}>
+        <Pressable
+          onPress={onParentTap}
+          style={[
+            styles.tapZone,
+            styles.parentZone,
+            parentRipple && styles.tapZoneRipple,
+            beatPulse && styles.tapZoneBeat,
+          ]}
+          accessibilityLabel="Parent tap zone"
+          accessibilityRole="button"
+          testID="parent-tap-zone"
+        >
+          <Text variant="h3" color={colors.babySurface}>
+            Parent
+          </Text>
+        </Pressable>
+
+        <Pressable
+          onPress={onBabyTap}
+          style={[
+            styles.tapZone,
+            styles.babyZone,
+            babyRipple && styles.tapZoneRipple,
+            beatPulse && styles.tapZoneBeat,
+          ]}
+          accessibilityLabel="Baby tap zone"
+          accessibilityRole="button"
+          testID="baby-tap-zone"
+        >
+          <Text variant="h3" color={colors.babySurface}>
+            Baby
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 };
@@ -241,57 +233,59 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 8,
-    height: 56,
-  },
-  headerCenter: {
-    alignItems: 'center',
+    padding: spacing.md,
+    paddingTop: spacing.xl,
   },
   closeButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: spacing.sm,
   },
-  zonesContainer: {
-    flex: 1,
+  bpmControl: {
     flexDirection: 'row',
-    padding: 16,
-    gap: 16,
+    alignItems: 'center',
+    gap: spacing.sm,
   },
-  zoneParent: {
+  bpmButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.babySurface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tapZones: {
     flex: 1,
+    gap: spacing.md,
+    padding: spacing.md,
+  },
+  tapZone: {
+    flex: 1,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: spacing.tapMinimumBaby,
+  },
+  parentZone: {
     backgroundColor: colors.babyTapZoneA,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 80,
   },
-  zoneBaby: {
-    flex: 1,
+  babyZone: {
     backgroundColor: colors.babyTapZoneB,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 80,
   },
-  ripple: {
-    position: 'absolute',
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 3,
-    borderColor: colors.babyCelebration,
+  tapZoneRipple: {
+    opacity: 0.7,
+    transform: [{ scale: 0.97 }],
   },
-  warningBanner: {
+  tapZoneBeat: {
+    opacity: 0.85,
+  },
+  celebrationOverlay: {
     position: 'absolute',
-    bottom: 24,
+    top: 0,
     left: 0,
     right: 0,
+    bottom: 0,
+    justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 100,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
   },
 });
-
-export { DuetTapScreen };

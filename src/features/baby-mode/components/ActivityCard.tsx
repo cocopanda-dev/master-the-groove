@@ -1,78 +1,53 @@
 // src/features/baby-mode/components/ActivityCard.tsx
 import React from 'react';
-import { StyleSheet, Pressable } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import { Text } from '@design-system';
-import { colors } from '@design-system/tokens';
-
-interface BabyActivityCard {
-  id: string;
-  stageId: number;
-  title: string;
-  instruction: string;
-  durationSeconds: number;
-  icon?: string;
-}
+import { colors, spacing } from '@design-system/tokens';
+import type { BabyActivityCard } from '../types';
 
 interface ActivityCardProps {
   readonly card: BabyActivityCard;
-  readonly onPress?: () => void;
+  readonly onPress: (card: BabyActivityCard) => void;
 }
 
-/**
- * A single activity card with warm styling, large text, and duration indicator.
- */
-const ActivityCard = ({ card, onPress }: ActivityCardProps) => (
-  <Pressable
-    testID={`activity-card-${card.id}`}
-    accessibilityLabel={`Activity: ${card.title}`}
-    accessibilityHint={card.instruction}
-    accessibilityRole="button"
-    onPress={onPress}
-    style={({ pressed }) => [
-      styles.container,
-      pressed && styles.pressed,
-    ]}
-  >
-    {card.icon !== undefined && (
-      <Text variant="h2" align="center">
-        {card.icon}
-      </Text>
-    )}
-    <Text variant="h4" color={colors.babyTextPrimary} align="center">
-      {card.title}
-    </Text>
-    <Text
-      variant="body"
-      color={colors.babyTextSecondary}
-      align="center"
+export const ActivityCard = ({ card, onPress }: ActivityCardProps) => {
+  const durationLabel = card.durationSeconds >= 60
+    ? `${Math.floor(card.durationSeconds / 60)} min`
+    : `${card.durationSeconds}s`;
+
+  return (
+    <Pressable
+      style={styles.card}
+      onPress={() => onPress(card)}
+      testID={`activity-card-${card.id}`}
+      accessibilityLabel={`${card.title} - ${durationLabel}`}
+      accessibilityRole="button"
     >
-      {card.instruction}
-    </Text>
-    <Text variant="caption" color={colors.babyTextSecondary} align="center">
-      ~{card.durationSeconds}s
-    </Text>
-  </Pressable>
-);
+      <Text variant="h4" color={colors.babyTextPrimary}>
+        {card.title}
+      </Text>
+      <Text variant="bodySmall" color={colors.babyTextSecondary} numberOfLines={2}>
+        {card.instruction}
+      </Text>
+      <Text variant="caption" color={colors.babyPrimary}>
+        {durationLabel}
+      </Text>
+    </Pressable>
+  );
+};
 
 const styles = StyleSheet.create({
-  container: {
+  card: {
     backgroundColor: colors.babySurface,
-    borderRadius: 20,
-    padding: 24,
-    marginHorizontal: 8,
-    width: 260,
-    gap: 8,
+    borderRadius: 12,
+    padding: spacing.lg,
+    width: 200,
+    marginRight: spacing.md,
+    gap: spacing.xs,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
     elevation: 2,
   },
-  pressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.97 }],
-  },
 });
-
-export { ActivityCard };
-export type { BabyActivityCard, ActivityCardProps };

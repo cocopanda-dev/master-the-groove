@@ -1,0 +1,47 @@
+[
+  {
+    "id": "s3-tap-first",
+    "stageId": 3,
+    "title": "First Taps",
+    "instruction": "Show your toddler how to tap the screen. Tap gently together and celebrate each tap!",
+    "durationSeconds": 60,
+    "activityType": "duet-tap",
+    "audioConfig": { "bpm": 80, "soundId": "soft-chime" }
+  },
+  {
+    "id": "s3-tap-takeTurns",
+    "stageId": 3,
+    "title": "Take Turns",
+    "instruction": "Tap on your side, then encourage your toddler to tap on theirs. Celebrate when they do!",
+    "durationSeconds": 90,
+    "activityType": "duet-tap",
+    "audioConfig": { "bpm": 70, "soundId": "soft-bell" }
+  },
+  {
+    "id": "s3-visualizer-shapes",
+    "stageId": 3,
+    "title": "Dancing Shapes",
+    "instruction": "Watch the shapes dance to the beat together. Point out the colors and shapes to your toddler.",
+    "durationSeconds": 90,
+    "activityType": "visualizer",
+    "audioConfig": { "bpm": 75, "soundId": "soft-chime" }
+  },
+  {
+    "id": "s3-tap-together",
+    "stageId": 3,
+    "title": "Tap Together",
+    "instruction": "Both tap at the same time to make the celebration burst appear! Work together as a team.",
+    "durationSeconds": 60,
+    "activityType": "duet-tap",
+    "audioConfig": { "bpm": 80, "soundId": "soft-chime" }
+  },
+  {
+    "id": "s3-tap-freeplay",
+    "stageId": 3,
+    "title": "Free Play",
+    "instruction": "Let your toddler explore! Tap anywhere, anytime. Every tap makes a sound.",
+    "durationSeconds": 120,
+    "activityType": "duet-tap",
+    "audioConfig": { "bpm": 80, "soundId": "soft-bell" }
+  }
+]

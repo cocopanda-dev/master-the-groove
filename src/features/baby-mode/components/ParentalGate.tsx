@@ -2,168 +2,140 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { Text } from '@design-system';
-import { colors } from '@design-system/tokens';
-
-const HOLD_DURATION_MS = 2000;
+import { colors, spacing } from '@design-system/tokens';
+import { PARENTAL_GATE_HOLD_MS } from '../constants';
 
 interface ParentalGateProps {
-  /** Called when both circles are successfully held for 2 seconds */
-  readonly onUnlock: () => void;
+  readonly onPass: () => void;
+  readonly onCancel: () => void;
 }
 
-/**
- * Parental gate requiring simultaneous 2-second hold on two circles.
- * Designed to be too complex for toddlers. Resets silently on release
- * to avoid confusing the child.
- */
-const ParentalGate = ({ onUnlock }: ParentalGateProps) => {
-  const [leftPressed, setLeftPressed] = useState(false);
-  const [rightPressed, setRightPressed] = useState(false);
-  const [progress, setProgress] = useState(0);
+export const ParentalGate = ({ onPass, onCancel }: ParentalGateProps) => {
+  const [leftHeld, setLeftHeld] = useState(false);
+  const [rightHeld, setRightHeld] = useState(false);
+  const leftRef = useRef(false);
+  const rightRef = useRef(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const passedRef = useRef(false);
 
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const startTimeRef = useRef<number | null>(null);
-
-  const clearTimer = useCallback(() => {
-    if (timerRef.current !== null) {
-      clearInterval(timerRef.current);
+  const checkBothHeld = useCallback(() => {
+    if (leftRef.current && rightRef.current && !passedRef.current) {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => {
+        passedRef.current = true;
+        onPass();
+      }, PARENTAL_GATE_HOLD_MS);
+    } else if (timerRef.current) {
+      clearTimeout(timerRef.current);
       timerRef.current = null;
     }
-    startTimeRef.current = null;
-    setProgress(0);
-  }, []);
+  }, [onPass]);
 
-  const startTimer = useCallback(() => {
-    if (timerRef.current !== null) return;
-    startTimeRef.current = Date.now();
-    timerRef.current = setInterval(() => {
-      if (startTimeRef.current === null) return;
-      const elapsed = Date.now() - startTimeRef.current;
-      const p = Math.min(elapsed / HOLD_DURATION_MS, 1);
-      setProgress(p);
+  const onLeftPressIn = useCallback(() => {
+    leftRef.current = true;
+    setLeftHeld(true);
+    checkBothHeld();
+  }, [checkBothHeld]);
 
-      if (elapsed >= HOLD_DURATION_MS) {
-        if (timerRef.current !== null) {
-          clearInterval(timerRef.current);
-          timerRef.current = null;
-        }
-        onUnlock();
-      }
-    }, 50);
-  }, [onUnlock]);
+  const onLeftPressOut = useCallback(() => {
+    leftRef.current = false;
+    setLeftHeld(false);
+    checkBothHeld();
+  }, [checkBothHeld]);
 
-  const checkBothPressed = useCallback(
-    (left: boolean, right: boolean) => {
-      if (left && right) {
-        startTimer();
-      } else {
-        clearTimer();
-      }
-    },
-    [startTimer, clearTimer],
-  );
+  const onRightPressIn = useCallback(() => {
+    rightRef.current = true;
+    setRightHeld(true);
+    checkBothHeld();
+  }, [checkBothHeld]);
 
-  const onLeftIn = useCallback(() => {
-    setLeftPressed(true);
-    checkBothPressed(true, rightPressed);
-  }, [checkBothPressed, rightPressed]);
-
-  const onLeftOut = useCallback(() => {
-    setLeftPressed(false);
-    checkBothPressed(false, rightPressed);
-  }, [checkBothPressed, rightPressed]);
-
-  const onRightIn = useCallback(() => {
-    setRightPressed(true);
-    checkBothPressed(leftPressed, true);
-  }, [checkBothPressed, leftPressed]);
-
-  const onRightOut = useCallback(() => {
-    setRightPressed(false);
-    checkBothPressed(leftPressed, false);
-  }, [checkBothPressed, leftPressed]);
+  const onRightPressOut = useCallback(() => {
+    rightRef.current = false;
+    setRightHeld(false);
+    checkBothHeld();
+  }, [checkBothHeld]);
 
   return (
-    <View style={styles.container}>
-      <Text variant="h3" color={colors.babyTextPrimary} align="center">
-        Hold both circles for 2 seconds
-      </Text>
-      <View style={styles.circleRow}>
-        <Pressable
-          testID="parental-gate-left"
-          accessibilityLabel="Left circle"
-          accessibilityRole="button"
-          onPressIn={onLeftIn}
-          onPressOut={onLeftOut}
-          style={[
-            styles.circle,
-            leftPressed && styles.circlePressed,
-          ]}
-        />
-        <Pressable
-          testID="parental-gate-right"
-          accessibilityLabel="Right circle"
-          accessibilityRole="button"
-          onPressIn={onRightIn}
-          onPressOut={onRightOut}
-          style={[
-            styles.circle,
-            rightPressed && styles.circlePressed,
-          ]}
-        />
-      </View>
-      {progress > 0 && (
-        <View style={styles.progressBarContainer}>
-          <View
-            testID="parental-gate-progress"
-            style={[styles.progressBar, { width: `${progress * 100}%` }]}
+    <View style={styles.overlay} testID="parental-gate">
+      <View style={styles.content}>
+        <Text variant="h3" color={colors.babyTextPrimary} align="center">
+          Parent Check
+        </Text>
+        <Text variant="body" color={colors.babyTextSecondary} align="center">
+          Hold both circles for 2 seconds to exit Baby Mode
+        </Text>
+        <View style={styles.circleRow}>
+          <Pressable
+            testID="parental-gate-left"
+            onPressIn={onLeftPressIn}
+            onPressOut={onLeftPressOut}
+            style={[styles.circle, leftHeld && styles.circleActive]}
+            accessibilityLabel="Left hold circle"
+            accessibilityRole="button"
+          />
+          <Pressable
+            testID="parental-gate-right"
+            onPressIn={onRightPressIn}
+            onPressOut={onRightPressOut}
+            style={[styles.circle, rightHeld && styles.circleActive]}
+            accessibilityLabel="Right hold circle"
+            accessibilityRole="button"
           />
         </View>
-      )}
+        <Pressable
+          onPress={onCancel}
+          style={styles.cancelButton}
+          accessibilityLabel="Cancel"
+          accessibilityRole="button"
+          testID="parental-gate-cancel"
+        >
+          <Text variant="body" color={colors.babyPrimary}>
+            Cancel
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 };
 
+const CIRCLE_SIZE = 80;
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.babyBackground,
-    padding: 32,
+    zIndex: 999,
+  },
+  content: {
+    backgroundColor: colors.babySurface,
+    borderRadius: 16,
+    padding: spacing.xl,
+    alignItems: 'center',
+    gap: spacing.lg,
+    width: '80%',
+    maxWidth: 320,
   },
   circleRow: {
     flexDirection: 'row',
+    gap: spacing['2xl'],
     justifyContent: 'center',
-    alignItems: 'center',
-    gap: 48,
-    marginTop: 32,
+    marginTop: spacing.md,
   },
   circle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: CIRCLE_SIZE,
+    height: CIRCLE_SIZE,
+    borderRadius: CIRCLE_SIZE / 2,
+    borderWidth: 3,
+    borderColor: colors.babyPrimary,
+    backgroundColor: 'transparent',
+  },
+  circleActive: {
     backgroundColor: colors.babyPrimary,
-    opacity: 0.6,
   },
-  circlePressed: {
-    opacity: 1,
-    backgroundColor: colors.babyAccent,
-  },
-  progressBarContainer: {
-    width: '60%',
-    height: 8,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 4,
-    marginTop: 24,
-    overflow: 'hidden',
-  },
-  progressBar: {
-    height: '100%',
-    backgroundColor: colors.babyAccent,
-    borderRadius: 4,
+  cancelButton: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
   },
 });
-
-export { ParentalGate };
-export type { ParentalGateProps };

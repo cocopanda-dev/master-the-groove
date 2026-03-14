@@ -2,112 +2,105 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import { ParentalGate } from '../components/ParentalGate';
-
-beforeEach(() => {
-  jest.useFakeTimers();
-});
-
-afterEach(() => {
-  jest.useRealTimers();
-});
+import { PARENTAL_GATE_HOLD_MS } from '../constants';
 
 describe('ParentalGate', () => {
-  it('renders two circles and instruction text', () => {
-    const onUnlock = jest.fn();
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('renders the gate UI', () => {
+    const onPass = jest.fn();
+    const onCancel = jest.fn();
     const { getByTestId, getByText } = render(
-      <ParentalGate onUnlock={onUnlock} />,
+      <ParentalGate onPass={onPass} onCancel={onCancel} />,
     );
 
-    expect(getByText('Hold both circles for 2 seconds')).toBeTruthy();
-    expect(getByTestId('parental-gate-left')).toBeTruthy();
-    expect(getByTestId('parental-gate-right')).toBeTruthy();
+    expect(getByTestId('parental-gate')).toBeTruthy();
+    expect(getByText('Parent Check')).toBeTruthy();
+    expect(getByText('Hold both circles for 2 seconds to exit Baby Mode')).toBeTruthy();
   });
 
-  it('does not unlock on a single tap', () => {
-    const onUnlock = jest.fn();
-    const { getByTestId } = render(<ParentalGate onUnlock={onUnlock} />);
-
-    // Just press and release the left circle
-    fireEvent(getByTestId('parental-gate-left'), 'pressIn');
-    act(() => {
-      jest.advanceTimersByTime(2100);
-    });
-    fireEvent(getByTestId('parental-gate-left'), 'pressOut');
-
-    expect(onUnlock).not.toHaveBeenCalled();
-  });
-
-  it('does not unlock when only one circle is held', () => {
-    const onUnlock = jest.fn();
-    const { getByTestId } = render(<ParentalGate onUnlock={onUnlock} />);
-
-    // Hold only left circle for 3 seconds
-    fireEvent(getByTestId('parental-gate-left'), 'pressIn');
-    act(() => {
-      jest.advanceTimersByTime(3000);
-    });
-
-    expect(onUnlock).not.toHaveBeenCalled();
-  });
-
-  it('unlocks when both circles are held for 2 seconds', () => {
-    const onUnlock = jest.fn();
-    const { getByTestId } = render(<ParentalGate onUnlock={onUnlock} />);
+  it('calls onPass after holding both circles for the required duration', () => {
+    const onPass = jest.fn();
+    const onCancel = jest.fn();
+    const { getByTestId } = render(
+      <ParentalGate onPass={onPass} onCancel={onCancel} />,
+    );
 
     // Press both circles
-    fireEvent(getByTestId('parental-gate-left'), 'pressIn');
-    fireEvent(getByTestId('parental-gate-right'), 'pressIn');
-
-    // Hold for 2 seconds
     act(() => {
-      jest.advanceTimersByTime(2100);
+      fireEvent(getByTestId('parental-gate-left'), 'pressIn');
+      fireEvent(getByTestId('parental-gate-right'), 'pressIn');
     });
 
-    expect(onUnlock).toHaveBeenCalledTimes(1);
+    // Wait for the hold duration
+    act(() => {
+      jest.advanceTimersByTime(PARENTAL_GATE_HOLD_MS);
+    });
+
+    expect(onPass).toHaveBeenCalledTimes(1);
   });
 
-  it('resets when a circle is released before 2 seconds', () => {
-    const onUnlock = jest.fn();
-    const { getByTestId } = render(<ParentalGate onUnlock={onUnlock} />);
+  it('does not call onPass if only one circle is held', () => {
+    const onPass = jest.fn();
+    const onCancel = jest.fn();
+    const { getByTestId } = render(
+      <ParentalGate onPass={onPass} onCancel={onCancel} />,
+    );
 
-    // Press both
-    fireEvent(getByTestId('parental-gate-left'), 'pressIn');
-    fireEvent(getByTestId('parental-gate-right'), 'pressIn');
-
-    // Hold for 1 second
     act(() => {
-      jest.advanceTimersByTime(1000);
+      fireEvent(getByTestId('parental-gate-left'), 'pressIn');
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(PARENTAL_GATE_HOLD_MS + 500);
+    });
+
+    expect(onPass).not.toHaveBeenCalled();
+  });
+
+  it('does not call onPass if circles released early', () => {
+    const onPass = jest.fn();
+    const onCancel = jest.fn();
+    const { getByTestId } = render(
+      <ParentalGate onPass={onPass} onCancel={onCancel} />,
+    );
+
+    act(() => {
+      fireEvent(getByTestId('parental-gate-left'), 'pressIn');
+      fireEvent(getByTestId('parental-gate-right'), 'pressIn');
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(500);
     });
 
     // Release one circle
-    fireEvent(getByTestId('parental-gate-right'), 'pressOut');
-
-    // Wait more time
     act(() => {
-      jest.advanceTimersByTime(2000);
+      fireEvent(getByTestId('parental-gate-left'), 'pressOut');
     });
 
-    expect(onUnlock).not.toHaveBeenCalled();
+    act(() => {
+      jest.advanceTimersByTime(PARENTAL_GATE_HOLD_MS);
+    });
+
+    expect(onPass).not.toHaveBeenCalled();
   });
 
-  it('shows progress bar while both circles held', () => {
-    const onUnlock = jest.fn();
-    const { getByTestId, queryByTestId } = render(
-      <ParentalGate onUnlock={onUnlock} />,
+  it('calls onCancel when cancel button is pressed', () => {
+    const onPass = jest.fn();
+    const onCancel = jest.fn();
+    const { getByTestId } = render(
+      <ParentalGate onPass={onPass} onCancel={onCancel} />,
     );
 
-    // No progress initially
-    expect(queryByTestId('parental-gate-progress')).toBeNull();
+    fireEvent.press(getByTestId('parental-gate-cancel'));
 
-    // Press both
-    fireEvent(getByTestId('parental-gate-left'), 'pressIn');
-    fireEvent(getByTestId('parental-gate-right'), 'pressIn');
-
-    // Advance to trigger progress update
-    act(() => {
-      jest.advanceTimersByTime(100);
-    });
-
-    expect(getByTestId('parental-gate-progress')).toBeTruthy();
+    expect(onCancel).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,82 +1,99 @@
 // src/features/baby-mode/__tests__/DuetTapScreen.test.tsx
 import React from 'react';
-import { render } from '@testing-library/react-native';
-import { DuetTapScreen } from '../components/DuetTapScreen';
+import { render, fireEvent, act } from '@testing-library/react-native';
+import { useBabyStore } from '@data-access/stores';
+import { DuetTapScreenComponent } from '../components/DuetTapScreen';
 
-// Mock expo-router
-jest.mock('expo-router', () => ({
-  useRouter: () => ({
-    push: jest.fn(),
-    back: jest.fn(),
-  }),
-}));
+describe('DuetTapScreenComponent', () => {
+  const defaultProps = {
+    babyProfileId: 'test-baby-id',
+    babyName: 'Luna',
+    onClose: jest.fn(),
+  };
 
-// Mock the baby store
-const mockBabyProfile = {
-  id: 'baby-1',
-  userId: 'user-1',
-  babyName: 'Luna',
-  birthDate: '2025-06-01',
-  currentStage: 2 as const,
-  stageOverride: null,
-};
-
-jest.mock('@data-access/stores/use-baby-store', () => ({
-  useBabyStore: (selector: (state: { babyProfile: typeof mockBabyProfile; logBabySession: jest.Mock }) => unknown) =>
-    selector({ babyProfile: mockBabyProfile, logBabySession: jest.fn() }),
-}));
-
-// Mock keep awake
-jest.mock('@navigation/hooks', () => ({
-  useKeepAwakeWhilePlaying: jest.fn(),
-}));
-
-describe('DuetTapScreen', () => {
   beforeEach(() => {
     jest.useFakeTimers();
+    defaultProps.onClose = jest.fn();
+    useBabyStore.setState({
+      babyProfile: {
+        id: 'test-baby-id',
+        userId: 'user-1',
+        babyName: 'Luna',
+        birthDate: '2025-06-01',
+        currentStage: 3,
+        stageOverride: null,
+      },
+      babySessions: [],
+    });
   });
 
   afterEach(() => {
     jest.useRealTimers();
   });
 
-  it('renders both tap zones', () => {
-    const { getByTestId } = render(<DuetTapScreen />);
+  it('renders the duet tap screen', () => {
+    const { getByTestId } = render(<DuetTapScreenComponent {...defaultProps} />);
 
-    expect(getByTestId('tap-zone-parent')).toBeTruthy();
-    expect(getByTestId('tap-zone-baby')).toBeTruthy();
+    expect(getByTestId('duet-tap-screen')).toBeTruthy();
   });
 
-  it('renders parent zone with "You" label', () => {
-    const { getByText } = render(<DuetTapScreen />);
-    expect(getByText('You')).toBeTruthy();
+  it('renders parent and baby tap zones', () => {
+    const { getByTestId } = render(<DuetTapScreenComponent {...defaultProps} />);
+
+    expect(getByTestId('parent-tap-zone')).toBeTruthy();
+    expect(getByTestId('baby-tap-zone')).toBeTruthy();
   });
 
-  it('renders baby zone with baby name', () => {
-    const { getByText } = render(<DuetTapScreen />);
-    expect(getByText('Luna')).toBeTruthy();
+  it('renders BPM controls', () => {
+    const { getByTestId } = render(<DuetTapScreenComponent {...defaultProps} />);
+
+    expect(getByTestId('bpm-display')).toBeTruthy();
+    expect(getByTestId('bpm-decrease')).toBeTruthy();
+    expect(getByTestId('bpm-increase')).toBeTruthy();
   });
 
-  it('renders close button', () => {
-    const { getByTestId } = render(<DuetTapScreen />);
-    expect(getByTestId('duet-tap-close')).toBeTruthy();
-  });
+  it('adjusts BPM with stepper buttons', () => {
+    const { getByTestId, getByText } = render(<DuetTapScreenComponent {...defaultProps} />);
 
-  it('renders BPM label', () => {
-    const { getByText } = render(<DuetTapScreen />);
+    fireEvent.press(getByTestId('bpm-increase'));
+    expect(getByText('85 BPM')).toBeTruthy();
+
+    fireEvent.press(getByTestId('bpm-decrease'));
     expect(getByText('80 BPM')).toBeTruthy();
   });
 
-  it('tap zones have correct accessibility labels', () => {
-    const { getByLabelText } = render(<DuetTapScreen />);
-    expect(getByLabelText('Parent tap zone')).toBeTruthy();
-    expect(getByLabelText('Luna tap zone')).toBeTruthy();
+  it('tap zones are pressable', () => {
+    const { getByTestId } = render(<DuetTapScreenComponent {...defaultProps} />);
+
+    // Should not throw
+    fireEvent.press(getByTestId('parent-tap-zone'));
+    fireEvent.press(getByTestId('baby-tap-zone'));
   });
 
-  it('tap zones have button accessibility role', () => {
-    const { getByTestId } = render(<DuetTapScreen />);
+  it('shows celebration burst when both zones tapped within window', () => {
+    const { getByTestId, queryByTestId } = render(
+      <DuetTapScreenComponent {...defaultProps} />,
+    );
 
-    expect(getByTestId('tap-zone-parent').props.accessibilityRole).toBe('button');
-    expect(getByTestId('tap-zone-baby').props.accessibilityRole).toBe('button');
+    // Initially no celebration
+    expect(queryByTestId('celebration-burst')).toBeNull();
+
+    // Tap both zones quickly
+    act(() => {
+      fireEvent.press(getByTestId('parent-tap-zone'));
+      fireEvent.press(getByTestId('baby-tap-zone'));
+    });
+
+    // Celebration should appear
+    expect(getByTestId('celebration-burst')).toBeTruthy();
+  });
+
+  it('shows response prompt when close button is pressed', () => {
+    const { getByTestId } = render(<DuetTapScreenComponent {...defaultProps} />);
+
+    fireEvent.press(getByTestId('duet-tap-close'));
+
+    // Should show response prompt
+    expect(getByTestId('baby-response-prompt')).toBeTruthy();
   });
 });

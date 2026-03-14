@@ -2,87 +2,59 @@
 import React from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { Text } from '@design-system';
-import { colors } from '@design-system/tokens';
-import { useRouter } from 'expo-router';
+import { colors, spacing } from '@design-system/tokens';
 
-/**
- * Two prominent buttons to quickly launch Duet Tap and Baby Visualizer.
- */
-const QuickLaunchButtons = () => {
-  const router = useRouter();
+interface QuickLaunchButtonsProps {
+  readonly onDuetTap: () => void;
+  readonly onVisualizer: () => void;
+}
 
-  return (
-    <View style={styles.container}>
-      <Pressable
-        testID="quick-launch-duet-tap"
-        accessibilityLabel="Duet Tap"
-        accessibilityHint="Launch the Duet Tap activity"
-        accessibilityRole="button"
-        onPress={() => router.push('/(tabs)/baby/duet-tap')}
-        style={({ pressed }) => [
-          styles.button,
-          styles.duetTapButton,
-          pressed && styles.pressed,
-        ]}
-      >
-        <Text variant="h3" color="#FFFFFF" align="center">
-          Duet Tap
-        </Text>
-        <Text variant="bodySmall" color="#FFFFFFCC" align="center">
-          Tap together!
-        </Text>
-      </Pressable>
-
-      <Pressable
-        testID="quick-launch-visualizer"
-        accessibilityLabel="Baby Visualizer"
-        accessibilityHint="Launch the Baby Visualizer"
-        accessibilityRole="button"
-        onPress={() => router.push('/(tabs)/baby/visualizer')}
-        style={({ pressed }) => [
-          styles.button,
-          styles.visualizerButton,
-          pressed && styles.pressed,
-        ]}
-      >
-        <Text variant="h3" color="#FFFFFF" align="center">
-          Visualizer
-        </Text>
-        <Text variant="bodySmall" color="#FFFFFFCC" align="center">
-          Watch shapes dance!
-        </Text>
-      </Pressable>
-    </View>
-  );
-};
+export const QuickLaunchButtons = ({ onDuetTap, onVisualizer }: QuickLaunchButtonsProps) => (
+  <View style={styles.container} testID="quick-launch-buttons">
+    <Pressable
+      onPress={onDuetTap}
+      style={[styles.button, styles.duetButton]}
+      accessibilityLabel="Duet Tap"
+      accessibilityRole="button"
+      testID="quick-launch-duet"
+    >
+      <Text variant="h4" color={colors.babySurface}>
+        Duet Tap
+      </Text>
+    </Pressable>
+    <Pressable
+      onPress={onVisualizer}
+      style={[styles.button, styles.visualizerButton]}
+      accessibilityLabel="Baby Visualizer"
+      accessibilityRole="button"
+      testID="quick-launch-visualizer"
+    >
+      <Text variant="h4" color={colors.babySurface}>
+        Visualizer
+      </Text>
+    </Pressable>
+  </View>
+);
 
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    gap: 16,
-    paddingHorizontal: 16,
-    marginTop: 24,
+    gap: spacing.md,
+    paddingHorizontal: spacing.md,
+    marginTop: spacing.lg,
   },
   button: {
     flex: 1,
-    borderRadius: 20,
-    paddingVertical: 28,
-    paddingHorizontal: 16,
+    borderRadius: 16,
+    paddingVertical: spacing.xl,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
-    minHeight: 100,
+    minHeight: spacing.tapMinimumBaby,
   },
-  duetTapButton: {
+  duetButton: {
     backgroundColor: colors.babyTapZoneA,
   },
   visualizerButton: {
     backgroundColor: colors.babySecondary,
   },
-  pressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.97 }],
-  },
 });
-
-export { QuickLaunchButtons };

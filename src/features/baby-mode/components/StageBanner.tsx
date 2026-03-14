@@ -2,23 +2,27 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text } from '@design-system';
-import { colors } from '@design-system/tokens';
-import { useBabyStage } from '../hooks/use-baby-stage';
+import { colors, spacing } from '@design-system/tokens';
+import type { BabyStageInfo } from '../types';
 
-/**
- * Displays the current baby stage, name, and age in a warm banner.
- * E.g., "Stage 2: Pat-a-Cake Mode" / "Luna, 8 months"
- */
-const StageBanner = () => {
-  const { stage, stageName, babyName, ageInMonths } = useBabyStage();
+interface StageBannerProps {
+  readonly stageInfo: BabyStageInfo;
+  readonly babyName: string;
+  readonly ageMonths: number;
+}
+
+export const StageBanner = ({ stageInfo, babyName, ageMonths }: StageBannerProps) => {
+  const ageText = ageMonths >= 12
+    ? `${Math.floor(ageMonths / 12)}y ${ageMonths % 12}m`
+    : `${ageMonths}m`;
 
   return (
     <View style={styles.container} testID="stage-banner">
-      <Text variant="h3" color={colors.babyTextPrimary} align="center">
-        Stage {stage}: {stageName}
+      <Text variant="h3" color={colors.babyTextPrimary}>
+        Stage {stageInfo.stage}: {stageInfo.name}
       </Text>
-      <Text variant="body" color={colors.babyTextSecondary} align="center">
-        {babyName}, {ageInMonths} months
+      <Text variant="body" color={colors.babyTextSecondary}>
+        {babyName} - {ageText} ({stageInfo.ageRange})
       </Text>
     </View>
   );
@@ -27,18 +31,16 @@ const StageBanner = () => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.babySurface,
-    borderRadius: 16,
-    paddingVertical: 20,
-    paddingHorizontal: 24,
-    marginHorizontal: 16,
-    marginTop: 16,
-    gap: 4,
+    borderRadius: 12,
+    padding: spacing.lg,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.md,
+    alignItems: 'center',
+    gap: spacing.xs,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
     elevation: 2,
   },
 });
-
-export { StageBanner };
