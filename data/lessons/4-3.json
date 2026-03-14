@@ -1,0 +1,148 @@
+{
+  "polyrhythmId": "4-3",
+  "title": "Feel 4:3",
+  "steps": [
+    {
+      "stepNumber": 1,
+      "type": "context",
+      "title": "Hear It In Music",
+      "instruction": "The 4:3 polyrhythm is found in classical hemiola passages, jazz comping, and progressive rock. It creates a sophisticated rhythmic tension.",
+      "secondaryText": "This pattern is more complex than 3:2, but the learning process is the same.",
+      "interactionType": null,
+      "interactionConfig": null,
+      "audioConfig": null
+    },
+    {
+      "stepNumber": 2,
+      "type": "shape",
+      "title": "Feel The Shape",
+      "instruction": "Watch the radial visualizer. Layer A (indigo) plays 4 evenly-spaced beats while Layer B (orange) plays 3. Notice the unique shape this creates.",
+      "secondaryText": "Observe how the beats interlock differently from 3:2.",
+      "interactionType": null,
+      "interactionConfig": null,
+      "audioConfig": {
+        "ratioA": 4,
+        "ratioB": 3,
+        "bpm": 72,
+        "soundA": "click",
+        "soundB": "woodblock",
+        "layers": "both",
+        "stereoSplit": true,
+        "volumeA": 0.8,
+        "volumeB": 0.8
+      }
+    },
+    {
+      "stepNumber": 3,
+      "type": "mnemonic",
+      "title": "Learn The Mnemonic",
+      "instruction": "Say this phrase in rhythm to internalize the 4:3 pattern:",
+      "secondaryText": "Each syllable aligns with a specific beat in the polyrhythm.",
+      "interactionType": null,
+      "interactionConfig": {
+        "mnemonic": "PASS THE BREAD AND BUT-TER",
+        "syllables": [
+          { "text": "PASS", "beat": 1, "layer": "both" },
+          { "text": "THE", "beat": 2, "layer": "A" },
+          { "text": "BREAD", "beat": 3, "layer": "B" },
+          { "text": "AND", "beat": 4, "layer": "A" },
+          { "text": "BUT", "beat": 5, "layer": "both" },
+          { "text": "TER", "beat": 6, "layer": "A" }
+        ]
+      },
+      "audioConfig": null
+    },
+    {
+      "stepNumber": 4,
+      "type": "sing",
+      "title": "Sing The 4",
+      "instruction": "Listen to just Layer B (the 3-beat pulse). Try singing or tapping the 4-beat pattern on top. Feel how the 4 fits against the 3.",
+      "secondaryText": "When you feel confident, tap 'I did it!' to move on.",
+      "interactionType": "self-report",
+      "interactionConfig": {
+        "completionLabel": "I did it!"
+      },
+      "audioConfig": {
+        "ratioA": 4,
+        "ratioB": 3,
+        "bpm": 68,
+        "soundA": "click",
+        "soundB": "woodblock",
+        "layers": "B",
+        "stereoSplit": false,
+        "volumeA": 0.0,
+        "volumeB": 0.8
+      }
+    },
+    {
+      "stepNumber": 5,
+      "type": "body",
+      "title": "Walk + Clap",
+      "instruction": "Walk in place to the 3-beat pulse (your feet). Clap the 4-beat pattern with your hands. Let your body feel both layers simultaneously.",
+      "secondaryText": "Keep going for 60 seconds. The timer will count down.",
+      "interactionType": "timer",
+      "interactionConfig": {
+        "durationSeconds": 60
+      },
+      "audioConfig": {
+        "ratioA": 4,
+        "ratioB": 3,
+        "bpm": 66,
+        "soundA": "click",
+        "soundB": "woodblock",
+        "layers": "both",
+        "stereoSplit": true,
+        "volumeA": 0.8,
+        "volumeB": 0.8
+      }
+    },
+    {
+      "stepNumber": 6,
+      "type": "hands",
+      "title": "Both Hands",
+      "instruction": "Tap the left zone for Layer A (4 beats) and the right zone for Layer B (3 beats). Try to stay in sync with the audio.",
+      "secondaryText": "Focus on feeling the groove, not perfection.",
+      "interactionType": "tap-zones",
+      "interactionConfig": {
+        "leftLabel": "4 (Layer A)",
+        "rightLabel": "3 (Layer B)",
+        "feedbackMode": "basic"
+      },
+      "audioConfig": {
+        "ratioA": 4,
+        "ratioB": 3,
+        "bpm": 70,
+        "soundA": "click",
+        "soundB": "woodblock",
+        "layers": "both",
+        "stereoSplit": true,
+        "volumeA": 0.8,
+        "volumeB": 0.8
+      }
+    },
+    {
+      "stepNumber": 7,
+      "type": "disappearing",
+      "title": "Disappearing Beat",
+      "instruction": "The audio will gradually fade away. Can you keep the rhythm going in your head and body?",
+      "secondaryText": "This is the ultimate test of internalization.",
+      "interactionType": "disappearing-beat",
+      "interactionConfig": {
+        "targetLayer": "A",
+        "barsPerStage": 4,
+        "stages": 3
+      },
+      "audioConfig": {
+        "ratioA": 4,
+        "ratioB": 3,
+        "bpm": 72,
+        "soundA": "click",
+        "soundB": "woodblock",
+        "layers": "both",
+        "stereoSplit": true,
+        "volumeA": 0.8,
+        "volumeB": 0.8
+      }
+    }
+  ]
+}
