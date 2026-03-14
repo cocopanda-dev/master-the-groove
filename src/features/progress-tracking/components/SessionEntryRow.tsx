@@ -64,6 +64,7 @@ const SessionEntryRow = ({ session, testID }: SessionEntryRowProps) => {
               styles.feelDot,
               { backgroundColor: FEEL_STATE_CONFIG[session.feelStateAfter].color },
             ]}
+            accessibilityRole="image"
             accessibilityLabel={`Feel state: ${FEEL_STATE_CONFIG[session.feelStateAfter].label}`}
           />
         )}

@@ -202,7 +202,7 @@ export const BabyVisualizerScreenComponent = ({
       <Pressable
         onPress={handleDone}
         style={styles.closeButton}
-        accessibilityLabel="Close"
+        accessibilityLabel="Close visualizer"
         accessibilityRole="button"
         testID="visualizer-close"
       >
@@ -216,12 +216,14 @@ export const BabyVisualizerScreenComponent = ({
         onPress={() => handleBpmAdjust('down')}
         style={styles.hiddenBpmDown}
         accessibilityLabel="Decrease BPM"
+        accessibilityRole="button"
         testID="visualizer-bpm-down"
       />
       <Pressable
         onPress={() => handleBpmAdjust('up')}
         style={styles.hiddenBpmUp}
         accessibilityLabel="Increase BPM"
+        accessibilityRole="button"
         testID="visualizer-bpm-up"
       />
 

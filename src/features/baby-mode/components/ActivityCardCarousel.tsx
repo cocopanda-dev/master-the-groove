@@ -21,6 +21,8 @@ export const ActivityCardCarousel = ({ cards, title, onCardPress }: ActivityCard
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.scrollContent}
+      accessibilityRole="list"
+      accessibilityLabel={`${title} activities`}
     >
       {cards.map((card) => (
         <ActivityCard key={card.id} card={card} onPress={onCardPress} />

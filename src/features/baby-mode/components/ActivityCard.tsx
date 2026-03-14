@@ -7,7 +7,7 @@ import type { BabyActivityCard } from '../types';
 
 interface ActivityCardProps {
   readonly card: BabyActivityCard;
-  readonly onPress: (card: BabyActivityCard) => void;
+  readonly onPress?: (card: BabyActivityCard) => void;
 }
 
 export const ActivityCard = ({ card, onPress }: ActivityCardProps) => {
@@ -18,10 +18,11 @@ export const ActivityCard = ({ card, onPress }: ActivityCardProps) => {
   return (
     <Pressable
       style={styles.card}
-      onPress={() => onPress(card)}
+      onPress={onPress ? () => onPress(card) : undefined}
+      disabled={!onPress}
       testID={`activity-card-${card.id}`}
       accessibilityLabel={`${card.title} - ${durationLabel}`}
-      accessibilityRole="button"
+      accessibilityRole={onPress ? 'button' : 'summary'}
     >
       <Text variant="h4" color={colors.babyTextPrimary}>
         {card.title}

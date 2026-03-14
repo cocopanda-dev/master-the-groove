@@ -1,6 +1,6 @@
 // src/features/feel-lessons/components/BodyStep.tsx
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { Text } from '@design-system';
 import { colors, spacing, borderRadius } from '@design-system/tokens';
 import { useAudioStore } from '@data-access/stores/use-audio-store';
@@ -103,17 +103,16 @@ export const BodyStep = ({ step, onComplete, isCompleted }: BodyStepProps) => {
       </View>
 
       {!isRunning && !isCompleted ? (
-        <View
+        <Pressable
           style={styles.startButton}
-          accessible
           accessibilityRole="button"
           accessibilityLabel="Start timer"
-          onTouchEnd={startTimer}
+          onPress={startTimer}
         >
           <Text variant="h3" color={colors.textPrimary} align="center">
             Tap to Start
           </Text>
-        </View>
+        </Pressable>
       ) : null}
     </ScrollView>
   );

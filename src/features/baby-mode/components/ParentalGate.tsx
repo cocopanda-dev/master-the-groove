@@ -80,7 +80,7 @@ export const ParentalGate = ({ onPass, onCancel }: ParentalGateProps) => {
             onPressIn={onLeftPressIn}
             onPressOut={onLeftPressOut}
             style={[styles.circle, leftHeld && styles.circleActive]}
-            accessibilityLabel="Left hold circle"
+            accessibilityLabel="Hold left circle to exit baby mode"
             accessibilityRole="button"
           />
           <Pressable
@@ -88,7 +88,7 @@ export const ParentalGate = ({ onPass, onCancel }: ParentalGateProps) => {
             onPressIn={onRightPressIn}
             onPressOut={onRightPressOut}
             style={[styles.circle, rightHeld && styles.circleActive]}
-            accessibilityLabel="Right hold circle"
+            accessibilityLabel="Hold right circle to exit baby mode"
             accessibilityRole="button"
           />
         </View>

@@ -86,7 +86,8 @@ export const FeelStatePrompt = ({
 
           <Pressable
             onPress={onSkip}
-            accessibilityLabel="Skip feel state"
+            accessibilityLabel="Skip"
+            accessibilityHint="Skips recording how the session felt"
             accessibilityRole="button"
             style={styles.skipButton}
             testID="feel-state-skip"

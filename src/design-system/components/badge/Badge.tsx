@@ -21,8 +21,12 @@ export const Badge = ({ label, variant = 'neutral', testID }: BadgeProps) => {
     <View
       testID={testID}
       style={[styles.container, { backgroundColor: config.bg }]}
+      accessibilityRole="text"
+      accessibilityLabel={label}
     >
-      <Text style={[styles.text, { color: config.text }]}>{label}</Text>
+      <Text style={[styles.text, { color: config.text }]} importantForAccessibility="no">
+        {label}
+      </Text>
     </View>
   );
 };

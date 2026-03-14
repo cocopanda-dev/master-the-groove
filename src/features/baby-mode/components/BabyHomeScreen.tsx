@@ -123,7 +123,7 @@ const BabyHomeScreen = () => {
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <ActivityCard card={item} onPress={() => {}} />}
+          renderItem={({ item }) => <ActivityCard card={item} />}
           contentContainerStyle={styles.cardList}
         />
       </View>
