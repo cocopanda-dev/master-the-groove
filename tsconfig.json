@@ -10,21 +10,54 @@
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "@features/*": ["src/features/*"],
-      "@data-access/*": ["src/data-access/*"],
-      "@libs/*": ["src/libs/*"],
-      "@operations/*": ["src/operations/*"],
-      "@design-system": ["src/design-system"],
-      "@design-system/*": ["src/design-system/*"],
-      "@types": ["src/types"],
-      "@types/*": ["src/types/*"],
-      "@entry-providers": ["src/entry-providers"],
-      "@entry-providers/*": ["src/entry-providers/*"],
-      "@assets/*": ["src/assets/*"],
-      "@navigation": ["src/navigation"],
-      "@navigation/*": ["src/navigation/*"]
+      "@features/*": [
+        "src/features/*"
+      ],
+      "@data-access/*": [
+        "src/data-access/*"
+      ],
+      "@libs/*": [
+        "src/libs/*"
+      ],
+      "@operations/*": [
+        "src/operations/*"
+      ],
+      "@design-system": [
+        "src/design-system"
+      ],
+      "@design-system/*": [
+        "src/design-system/*"
+      ],
+      "@types": [
+        "src/types"
+      ],
+      "@types/*": [
+        "src/types/*"
+      ],
+      "@entry-providers": [
+        "src/entry-providers"
+      ],
+      "@entry-providers/*": [
+        "src/entry-providers/*"
+      ],
+      "@assets/*": [
+        "src/assets/*"
+      ],
+      "@navigation": [
+        "src/navigation"
+      ],
+      "@navigation/*": [
+        "src/navigation/*"
+      ]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

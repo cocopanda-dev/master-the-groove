@@ -96,7 +96,7 @@ export const DuetTapScreenComponent = ({
     if (lastBabyTap.current > 0) {
       checkCelebration(now, lastBabyTap.current);
     }
-  }, [checkCelebration]);
+  }, [checkCelebration, babyVolume]);
 
   const onBabyTap = useCallback(() => {
     const now = Date.now();
@@ -107,7 +107,7 @@ export const DuetTapScreenComponent = ({
     if (lastParentTap.current > 0) {
       checkCelebration(lastParentTap.current, now);
     }
-  }, [checkCelebration]);
+  }, [checkCelebration, babyVolume]);
 
   const handleDone = useCallback(() => {
     timer.stop();

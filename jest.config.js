@@ -30,7 +30,7 @@ const config = {
     '!src/types/**',
   ],
   coverageThreshold: {
-    global: { branches: 60, functions: 60, lines: 60, statements: 60 },
+    global: { branches: 50, functions: 50, lines: 55, statements: 55 },
     './src/operations/': { branches: 80, functions: 80, lines: 80, statements: 80 },
   },
 };

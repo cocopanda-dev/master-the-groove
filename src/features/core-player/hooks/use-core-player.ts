@@ -1,5 +1,6 @@
 // src/features/core-player/hooks/use-core-player.ts
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useIsFocused } from '@react-navigation/native';
 import { useAudioStore } from '@data-access/stores/use-audio-store';
 import { useSessionStore } from '@data-access/stores/use-session-store';
 import { useSettingsStore } from '@data-access/stores/use-settings-store';
@@ -78,6 +79,14 @@ export const useCorePlayer = (): UseCorePlayerReturn => {
   );
 
   const [feelStatePrompt, setFeelStatePrompt] = useState<FeelStatePromptState>(INITIAL_FEEL_STATE);
+
+  // Stop playback when navigating away from the screen
+  const isFocused = useIsFocused();
+  useEffect(() => {
+    if (!isFocused && audio.isPlaying) {
+      audio.stop();
+    }
+  }, [isFocused, audio]);
 
   // Track when the session started for duration check before saving
   const sessionStartRef = useRef<number | null>(null);

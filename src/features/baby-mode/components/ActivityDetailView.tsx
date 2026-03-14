@@ -42,7 +42,7 @@ export const ActivityDetailView = ({
     activityStartRef.current = Date.now();
     playSound('click', babyVolume, 0).catch(() => {});
     timer.start();
-  }, [timer]);
+  }, [timer, babyVolume]);
 
   const handleDone = useCallback(() => {
     timer.stop();
