@@ -27,12 +27,9 @@ const useKeepAwakeWhilePlaying = (options?: KeepAwakeOptions): void => {
   const shouldKeepAwake = options?.always === true || isPlaying;
 
   useEffect(() => {
-    if (shouldKeepAwake) {
-      activateKeepAwakeAsync(KEEP_AWAKE_TAG);
-    } else {
-      deactivateKeepAwake(KEEP_AWAKE_TAG);
-    }
+    if (!shouldKeepAwake) return;
 
+    activateKeepAwakeAsync(KEEP_AWAKE_TAG);
     return () => {
       deactivateKeepAwake(KEEP_AWAKE_TAG);
     };

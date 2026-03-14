@@ -1,10 +1,4 @@
-import {
-  useSharedValue,
-  useDerivedValue,
-  withTiming,
-  interpolateColor,
-} from 'react-native-reanimated';
-import { useEffect } from 'react';
+import { useMemo } from 'react';
 import { colors } from '@design-system/tokens';
 
 interface BabyPaletteResult {
@@ -13,57 +7,26 @@ interface BabyPaletteResult {
   inactiveTint: string;
 }
 
-const TRANSITION_DURATION = 200;
+const DEFAULT_PALETTE: BabyPaletteResult = {
+  backgroundColor: colors.surface,
+  activeTint: colors.primary,
+  inactiveTint: colors.textSecondary,
+};
+
+const BABY_PALETTE: BabyPaletteResult = {
+  backgroundColor: colors.babySurface,
+  activeTint: colors.babyPrimary,
+  inactiveTint: colors.babyTextSecondary,
+};
 
 /**
- * Provides animated color values for the tab bar that transition
- * between the default palette and the baby palette.
- *
- * When the baby tab is active, the tab bar smoothly transitions
- * over 200ms to warm baby-mode colors.
+ * Returns tab bar color palette based on whether the baby tab is active.
  *
  * @param isBabyActive - Whether the baby tab is currently focused
- * @returns Object with animated backgroundColor, activeTint, and inactiveTint
+ * @returns Object with backgroundColor, activeTint, and inactiveTint
  */
-const useBabyPalette = (isBabyActive: boolean): BabyPaletteResult => {
-  const progress = useSharedValue(isBabyActive ? 1 : 0);
-
-  useEffect(() => {
-    progress.value = withTiming(isBabyActive ? 1 : 0, {
-      duration: TRANSITION_DURATION,
-    });
-  }, [isBabyActive, progress]);
-
-  const backgroundColor = useDerivedValue(() =>
-    interpolateColor(
-      progress.value,
-      [0, 1],
-      [colors.surface, colors.babySurface],
-    ),
-  );
-
-  const activeTint = useDerivedValue(() =>
-    interpolateColor(
-      progress.value,
-      [0, 1],
-      [colors.primary, colors.babyPrimary],
-    ),
-  );
-
-  const inactiveTint = useDerivedValue(() =>
-    interpolateColor(
-      progress.value,
-      [0, 1],
-      [colors.textSecondary, colors.babyTextSecondary],
-    ),
-  );
-
-  return {
-    backgroundColor: backgroundColor.value as string,
-    activeTint: activeTint.value as string,
-    inactiveTint: inactiveTint.value as string,
-  };
-};
+const useBabyPalette = (isBabyActive: boolean): BabyPaletteResult =>
+  useMemo(() => (isBabyActive ? BABY_PALETTE : DEFAULT_PALETTE), [isBabyActive]);
 
 export { useBabyPalette };
 export type { BabyPaletteResult };

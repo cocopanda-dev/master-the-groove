@@ -1,6 +1,7 @@
 import React, { forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from 'react';
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
 import type { BottomSheetBackdropProps } from '@gorhom/bottom-sheet';
+import { colors } from '@design-system/tokens';
 import type { BottomSheetContainerProps, BottomSheetContainerRef } from './types';
 
 const DEFAULT_SNAP_POINTS = ['30%', '60%', '90%'];
@@ -46,7 +47,7 @@ const BottomSheetContainer = forwardRef<BottomSheetContainerRef, BottomSheetCont
         snapPoints={resolvedSnapPoints}
         enablePanDownToClose
         backdropComponent={renderBackdrop}
-        handleIndicatorStyle={{ backgroundColor: '#94A3B8' }}
+        handleIndicatorStyle={{ backgroundColor: colors.textSecondary }}
         onClose={onDismiss}
         index={-1}
       >

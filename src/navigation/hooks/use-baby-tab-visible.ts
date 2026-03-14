@@ -1,4 +1,5 @@
 import { useUserStore } from '@data-access/stores/use-user-store';
+import { useShallow } from 'zustand/shallow';
 
 /**
  * Determines whether the Baby tab should be visible in the tab bar.
@@ -9,8 +10,9 @@ import { useUserStore } from '@data-access/stores/use-user-store';
  * - Visible by default if user has not completed onboarding
  */
 const useBabyTabVisible = (): boolean => {
-  const profile = useUserStore((state) => state.profile);
-  const isOnboarded = useUserStore((state) => state.isOnboarded);
+  const { profile, isOnboarded } = useUserStore(
+    useShallow((state) => ({ profile: state.profile, isOnboarded: state.isOnboarded })),
+  );
 
   if (!isOnboarded) {
     return true;

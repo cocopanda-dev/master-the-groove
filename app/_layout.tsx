@@ -1,13 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
-import { ThemeProvider } from '@entry-providers/theme-provider';
-import { LocalizationProvider } from '@entry-providers/localization-provider';
+import { GestureProvider, SafeAreaProvider, ThemeProvider, LocalizationProvider } from '@entry-providers';
+import { ErrorBoundary } from '@libs/error-handling/error-boundary';
 import { useUserStore } from '@data-access/stores/use-user-store';
-import { StyleSheet } from 'react-native';
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -16,16 +13,17 @@ const RootLayoutNav = () => {
   const router = useRouter();
   const segments = useSegments();
   const isOnboarded = useUserStore((state) => state.isOnboarded);
+  const firstSegment = segments[0];
 
   useEffect(() => {
-    const inOnboarding = segments[0] === '(onboarding)';
+    const inOnboarding = firstSegment === '(onboarding)';
 
     if (!isOnboarded && !inOnboarding) {
       router.replace('/(onboarding)');
     } else if (isOnboarded && inOnboarding) {
       router.replace('/(tabs)/learn');
     }
-  }, [isOnboarded, segments, router]);
+  }, [isOnboarded, firstSegment, router]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
@@ -41,10 +39,11 @@ const RootLayoutNav = () => {
  *
  * Provider order (outermost to innermost):
  * 1. ThemeProvider
- * 2. GestureHandlerRootView
+ * 2. GestureProvider
  * 3. SafeAreaProvider
  * 4. BottomSheetModalProvider
  * 5. LocalizationProvider
+ * 6. ErrorBoundary
  */
 const RootLayout = () => {
   const [appIsReady, setAppIsReady] = useState(false);
@@ -62,17 +61,12 @@ const RootLayout = () => {
         console.warn('Error during app preparation:', err);
       } finally {
         setAppIsReady(true);
+        SplashScreen.hideAsync();
       }
     };
 
     prepare();
   }, []);
-
-  useEffect(() => {
-    if (appIsReady) {
-      SplashScreen.hideAsync();
-    }
-  }, [appIsReady]);
 
   if (!appIsReady) {
     return null;
@@ -80,24 +74,20 @@ const RootLayout = () => {
 
   return (
     <ThemeProvider>
-      <GestureHandlerRootView style={styles.container}>
+      <GestureProvider>
         <SafeAreaProvider>
           <BottomSheetModalProvider>
             <LocalizationProvider>
-              <RootLayoutNav />
+              <ErrorBoundary>
+                <RootLayoutNav />
+              </ErrorBoundary>
             </LocalizationProvider>
           </BottomSheetModalProvider>
         </SafeAreaProvider>
-      </GestureHandlerRootView>
+      </GestureProvider>
     </ThemeProvider>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
 
 // Expo Router requires default export
 export default RootLayout;

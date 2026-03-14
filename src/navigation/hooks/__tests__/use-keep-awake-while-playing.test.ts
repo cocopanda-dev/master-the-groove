@@ -22,10 +22,11 @@ describe('useKeepAwakeWhilePlaying', () => {
     expect(activateKeepAwakeAsync).toHaveBeenCalled();
   });
 
-  it('deactivates keep-awake when isPlaying is false', () => {
+  it('does not activate or deactivate keep-awake when isPlaying is false', () => {
     mockAudioStore.isPlaying = false;
     renderHook(() => useKeepAwakeWhilePlaying());
-    expect(deactivateKeepAwake).toHaveBeenCalled();
+    expect(activateKeepAwakeAsync).not.toHaveBeenCalled();
+    expect(deactivateKeepAwake).not.toHaveBeenCalled();
   });
 
   it('deactivates keep-awake on unmount', () => {

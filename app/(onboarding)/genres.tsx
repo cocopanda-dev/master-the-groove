@@ -8,19 +8,11 @@ const GenresScreen = () => {
   const profile = useUserStore((state) => state.profile);
   const role = profile?.role;
 
-  const handleContinue = () => {
+  const handleAdvance = () => {
     if (role === 'parent' || role === 'both') {
       router.push('/(onboarding)/baby-age');
     } else {
       // TODO: Call userStore.completeOnboarding() when implemented
-      router.replace('/(tabs)/learn');
-    }
-  };
-
-  const handleSkip = () => {
-    if (role === 'parent' || role === 'both') {
-      router.push('/(onboarding)/baby-age');
-    } else {
       router.replace('/(tabs)/learn');
     }
   };
@@ -31,13 +23,13 @@ const GenresScreen = () => {
       <Text variant="body">Select genres you enjoy (multi-select)</Text>
       {/* TODO: Genre multi-select UI in feature epic */}
       <Button
-        onPress={handleContinue}
+        onPress={handleAdvance}
         accessibilityLabel="Continue to next step"
       >
         Continue
       </Button>
       <Button
-        onPress={handleSkip}
+        onPress={handleAdvance}
         accessibilityLabel="Skip genre selection"
         variant="secondary"
       >

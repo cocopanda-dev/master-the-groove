@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { Tabs } from 'expo-router';
+import { Tabs, useSegments } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { TAB_BAR_STYLES, HEADER_STYLES } from '@navigation/constants';
 import { useBabyTabVisible } from '@navigation/hooks/use-baby-tab-visible';
@@ -7,8 +6,8 @@ import { useBabyPalette } from '@navigation/hooks/use-baby-palette';
 
 const TabLayout = () => {
   const isBabyTabVisible = useBabyTabVisible();
-  const [activeTab, setActiveTab] = useState<string>('learn');
-  const isBabyActive = activeTab === 'baby';
+  const segments = useSegments() as string[];
+  const isBabyActive = segments[1] === 'baby';
   const palette = useBabyPalette(isBabyActive);
 
   return (
@@ -28,14 +27,6 @@ const TabLayout = () => {
           fontWeight: '500',
         },
         ...HEADER_STYLES,
-      }}
-      screenListeners={{
-        tabPress: (event) => {
-          const routeName = event.target?.split('-')[0];
-          if (routeName) {
-            setActiveTab(routeName);
-          }
-        },
       }}
     >
       <Tabs.Screen
