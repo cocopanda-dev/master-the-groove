@@ -3,7 +3,8 @@ import { HEADER_STYLES } from '@navigation/constants';
 
 /**
  * Progress tab stack:
- * - index: Progress dashboard (single screen for MVP)
+ * - index: Progress dashboard
+ * - history: Full session history (accepts optional polyrhythmId filter)
  */
 const ProgressLayout = () => (
   <Stack
@@ -15,6 +16,10 @@ const ProgressLayout = () => (
     <Stack.Screen
       name="index"
       options={{ title: 'My Progress' }}
+    />
+    <Stack.Screen
+      name="history"
+      options={{ title: 'Session History' }}
     />
   </Stack>
 );
