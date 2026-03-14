@@ -42,7 +42,7 @@ describe('GenreChip', () => {
 
   it('can toggle multiple genres independently', () => {
     const onToggle = jest.fn();
-    const { getByTestId, rerender } = render(
+    const { getByTestId } = render(
       <>
         <GenreChip genre="Jazz" selected={true} onToggle={onToggle} />
         <GenreChip genre="Rock" selected={false} onToggle={onToggle} />

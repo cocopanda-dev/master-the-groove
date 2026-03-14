@@ -1,6 +1,6 @@
 // src/features/disappearing-beat/hooks/use-drift-tracker.ts
 import { useCallback, useEffect, useRef } from 'react';
-import { useAudioStore } from '@data-access/stores';
+import { useAudioStore } from '@data-access/stores/use-audio-store';
 import { calculateDrift } from '@operations/drift-detection';
 import type { DriftResult } from '@operations/drift-detection';
 import type { DisappearingBeatStage, StageConfig } from '../types';

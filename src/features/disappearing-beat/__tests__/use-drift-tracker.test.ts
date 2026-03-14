@@ -12,7 +12,7 @@ const mockOnCycleComplete = jest.fn((cb: (count: number) => void) => {
   };
 });
 
-jest.mock('@data-access/stores', () => ({
+jest.mock('@data-access/stores/use-audio-store', () => ({
   useAudioStore: (selector: (state: Record<string, unknown>) => unknown) => {
     const state = {
       getCurrentBeat1Timestamp: mockGetCurrentBeat1Timestamp,

@@ -1,7 +1,7 @@
 // src/features/disappearing-beat/__tests__/use-disappearing-beat-engine.test.ts
 import { renderHook, act } from '@testing-library/react-native';
 import { useDisappearingBeatEngine } from '../hooks/use-disappearing-beat-engine';
-import type { StageConfig, DisappearingBeatResult } from '../types';
+import type { StageConfig } from '../types';
 
 // Mock the audio store
 const mockPlay = jest.fn();
@@ -22,7 +22,7 @@ const mockOnCycleComplete = jest.fn((cb: (count: number) => void) => {
   };
 });
 
-jest.mock('@data-access/stores', () => ({
+jest.mock('@data-access/stores/use-audio-store', () => ({
   useAudioStore: (selector: (state: Record<string, unknown>) => unknown) => {
     const state = {
       play: mockPlay,

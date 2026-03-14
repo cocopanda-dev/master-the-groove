@@ -1,6 +1,6 @@
 // src/features/feel-lessons/__tests__/BodyStep.test.tsx
 import React from 'react';
-import { render, act } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import { BodyStep } from '../components/BodyStep';
 import type { LessonStep } from '@types';
 

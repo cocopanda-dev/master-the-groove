@@ -1,7 +1,7 @@
 // src/features/disappearing-beat/hooks/use-disappearing-beat-engine.ts
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { useAudioStore } from '@data-access/stores';
+import { useAudioStore } from '@data-access/stores/use-audio-store';
 import type { DisappearingBeatStage, StageConfig, DisappearingBeatResult } from '../types';
 import {
   MIN_WARMUP_MS,

@@ -1,9 +1,7 @@
 // src/features/feel-lessons/components/DisappearingStep.tsx
-// TODO: Replace with DisappearingBeatInline component from @features/disappearing-beat
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Text, Button } from '@design-system';
-import { colors, spacing, borderRadius } from '@design-system/tokens';
+import React, { useCallback, useMemo } from 'react';
+import { DisappearingBeatInline } from '@features/disappearing-beat';
+import type { StageConfig, DisappearingBeatResult } from '@features/disappearing-beat';
 import type { LessonStep } from '@types';
 
 interface DisappearingStepProps {
@@ -13,65 +11,32 @@ interface DisappearingStepProps {
 }
 
 /**
- * Stub placeholder for the Disappearing Beat step.
- * The full implementation is being built by another agent
- * in the @features/disappearing-beat module.
+ * Lesson Step 7: Disappearing Beat challenge.
+ * Wraps DisappearingBeatInline with config derived from the lesson step data.
  */
-export const DisappearingStep = ({ step, onComplete, isCompleted }: DisappearingStepProps) => (
-  <View style={styles.container} testID="disappearing-step">
-    <Text variant="h3" color={colors.textPrimary} align="center">
-      Disappearing Beat Challenge
-    </Text>
+export const DisappearingStep = ({ step, onComplete }: DisappearingStepProps) => {
+  const config = useMemo((): StageConfig => {
+    const ic = step.interactionConfig as {
+      targetLayer?: string;
+      barsPerStage?: number;
+    } | undefined;
 
-    <Text variant="body" color={colors.textPrimary} align="center">
-      {step.instruction}
-    </Text>
+    return {
+      ratioA: step.audioConfig?.ratioA ?? 3,
+      ratioB: step.audioConfig?.ratioB ?? 2,
+      bpm: step.audioConfig?.bpm ?? 72,
+      targetLayer: (ic?.targetLayer === 'B' ? 'B' : 'A') as 'A' | 'B',
+      barsPerStage: ic?.barsPerStage ?? 4,
+      returnCycles: 2,
+    };
+  }, [step.audioConfig, step.interactionConfig]);
 
-    {step.secondaryText ? (
-      <Text variant="bodySmall" color={colors.textSecondary} align="center">
-        {step.secondaryText}
-      </Text>
-    ) : null}
+  const handleComplete = useCallback(
+    (_result: DisappearingBeatResult) => {
+      onComplete?.();
+    },
+    [onComplete],
+  );
 
-    <View style={styles.placeholderBox}>
-      <Text variant="body" color={colors.textMuted} align="center">
-        Full disappearing beat experience coming soon.
-      </Text>
-    </View>
-
-    {!isCompleted ? (
-      <Button
-        accessibilityLabel="Mark as done"
-        onPress={() => onComplete?.()}
-        variant="secondary"
-        size="lg"
-      >
-        Mark as Done
-      </Button>
-    ) : (
-      <Text variant="body" color={colors.success} align="center">
-        Step completed!
-      </Text>
-    )}
-  </View>
-);
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: spacing.lg,
-    gap: spacing.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  placeholderBox: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.xl,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderStyle: 'dashed',
-    width: '100%',
-    alignItems: 'center',
-  },
-});
+  return <DisappearingBeatInline config={config} onComplete={handleComplete} />;
+};

@@ -75,12 +75,7 @@ export const BodyStep = ({ step, onComplete, isCompleted }: BodyStepProps) => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  let timerColor = colors.textPrimary;
-  if (isCompleted) {
-    timerColor = colors.success;
-  } else if (isRunning) {
-    timerColor = colors.primaryLight;
-  }
+  const timerColor: string = isCompleted ? colors.success : isRunning ? colors.primaryLight : colors.textPrimary;
 
   return (
     <ScrollView

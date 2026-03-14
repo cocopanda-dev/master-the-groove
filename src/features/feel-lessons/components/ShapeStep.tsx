@@ -1,6 +1,6 @@
 // src/features/feel-lessons/components/ShapeStep.tsx
 import React, { useEffect } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
 import { Text } from '@design-system';
 import { colors, spacing } from '@design-system/tokens';
 import { useAudioStore } from '@data-access/stores/use-audio-store';
@@ -49,9 +49,16 @@ export const ShapeStep = ({ step }: ShapeStepProps) => {
       </Text>
       {audio ? (
         <RadialVisualizer
-          ratioA={audio.ratioA}
-          ratioB={audio.ratioB}
-          interactive={false}
+          ratio={{
+            id: `${audio.ratioA}-${audio.ratioB}`,
+            ratioA: audio.ratioA,
+            ratioB: audio.ratioB,
+            name: `${audio.ratioA}:${audio.ratioB}`,
+            displayName: '',
+            culturalOrigin: '',
+            mnemonic: '',
+          }}
+          isPlaying={true}
         />
       ) : null}
       {step.secondaryText ? (
