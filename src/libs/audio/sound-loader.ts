@@ -62,7 +62,7 @@ export const playSound = async (
     shouldPlay: true,
     positionMillis: 0,
     volume: Math.max(0, Math.min(1, volume)),
-    pan: Math.max(-1, Math.min(1, pan)),
+    audioPan: Math.max(-1, Math.min(1, pan)),
   });
 };
 
