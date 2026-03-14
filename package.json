@@ -13,7 +13,11 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "ci": "npm run typecheck && npm run lint && npm run test",
-    "e2e": "maestro test e2e/"
+    "e2e": "maestro test e2e/",
+    "build:dev": "eas build --profile development --platform ios",
+    "build:dev-sim": "eas build --profile development-simulator --platform ios",
+    "build:preview": "eas build --profile preview --platform ios",
+    "build:production": "eas build --profile production --platform ios"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
